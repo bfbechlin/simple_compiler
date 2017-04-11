@@ -38,16 +38,45 @@ int hm_init(unsigned int size, float load_factor, size_t value_size, struct hash
 	return 0;
 }
 
+static int hm_grow(struct hashmap *hm) {
+	/* remember old size and buckets */
+	int i;
+	unsigned int old_size = hm->size;
+	struct hm_bucket **buckets = hm->buckets;
+
+	/* alloc new buckets */
+	hm->size = 2*hm->size;
+	hm->used = 0;
+	hm->buckets = malloc(hm->size*sizeof(struct hm_bucket *));
+
+	if (!hm->buckets) {
+		return -1;
+	}
+
+	/* insert old values */
+	for (i = 0; i < old_size; i++) {
+		if (!buckets[i]) {
+			continue;
+		}
+		hm_put(hm, buckets[i]->key, buckets[i]->value);
+		free(buckets[i]->value);
+	}
+
+	free(buckets);
+
+	return 0;
+}
+
 int hm_put(struct hashmap *hm, const char *key, const void *value) {
 	int index = hm_hash_function(key)%hm->size;
 
 	if (hm->buckets[index] != NULL) {
-		return -1;
+		return -2;
 	}
 
 	struct hm_bucket *new = malloc(sizeof(struct hm_bucket));
 	if (!new) {
-		return -2;
+		return -3;
 	}
 
 
@@ -56,6 +85,12 @@ int hm_put(struct hashmap *hm, const char *key, const void *value) {
 	new->value = malloc(hm->value_size);
 	memcpy(new->value, value, hm->value_size);
 	hm->buckets[index] = new;
+
+	hm->used++;
+
+	if ((float)hm->used/hm->size > hm->load_factor) {
+		hm_grow(hm);
+	}
 
 	return 0;
 }

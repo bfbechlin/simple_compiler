@@ -1,8 +1,11 @@
  /* DEFINITIONS*/
 %{
 	#include "tokens.h"
-
+	int lineCounter = 1;
 %}
+
+%x comment
+%x string
 
 %%
 
@@ -27,12 +30,34 @@ print	{return KW_PRINT;}
 [,;:\(\)\[\]\{\}\+\-*<>=!&$#/] {return yytext[0];}
 
  /* COMPOSED OPERATORS*/
-\<=		{return OPERATOR_LE;}
-\>=		{return OPERATOR_GE;}
-\==		{return OPERATOR_EQ;}
-!=		{return OPERATOR_NE;}
-&&		{return OPERATOR_AND;}
-\|\|	{return OPERATOR_OR;}
+"<="	{return OPERATOR_LE;}
+">="	{return OPERATOR_GE;}
+"=="	{return OPERATOR_EQ;}
+"!="	{return OPERATOR_NE;}
+"&&"	{return OPERATOR_AND;}
+"||"	{return OPERATOR_OR;}
+
+ /* IDENTIFIERS*/
+[_A-Za-z][_A-Za-z0-9]*	{return TK_IDENTIFIER;}
+
+ /* LITERALS*/
+[0-9]+			{return LIT_INTEGER;}
+[0-9]+.[0-9]	{return LIT_REAL;}
+'.'				{return LIT_CHAR;}
+ /* STRINGS */
+\"[^\"|^"\""]*\"		{return LIT_STRING;}
+
+ /* LINE COUNTER*/
+\n			{lineCounter++;}
+
+ /* SINGLELINE COMMENTS*/
+\/\/.*\n	{lineCounter++;}
+
+ /* MULTILINE COMMENTS */
+"/*"		BEGIN(comment);
+<comment>.		{}
+<comment>\n		{lineCounter++;}
+<comment>"*/"	BEGIN(INITIAL);
 
 %%
 
@@ -41,4 +66,8 @@ print	{return KW_PRINT;}
 
 int yywrap(void){
 	return 1;
+}
+
+int getLineNumber(void){
+	return lineCounter;
 }

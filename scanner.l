@@ -1,11 +1,19 @@
  /* DEFINITIONS*/
 %{
 	#include "tokens.h"
+	#include "hashmap.h"
 
-	int isRunning = 0;
-
+	int initMe(void);
 	int getLineNumber(void);
+	int isRunning(void);
+
+	void hashPut(int code);
+	
+	int running = 1;
 	int lineCounter = 1;
+	int tokenCode = 0;
+	struct hashmap hash;
+
 %}
 
 %x comment
@@ -41,15 +49,15 @@ print	{return KW_PRINT;}
 "||"	{return OPERATOR_OR;}
 
  /* IDENTIFIERS*/
-[_A-Za-z][_A-Za-z0-9]*	{return TK_IDENTIFIER;}
+[_A-Za-z][_A-Za-z0-9]*	{hashPut(TK_IDENTIFIER);return TK_IDENTIFIER;}
 
  /* LITERALS*/
-[0-9]+			{return LIT_INTEGER;}
-[0-9]+.[0-9]+	{return LIT_REAL;}
-'.'				{return LIT_CHAR;}
+[0-9]+			{hashPut(LIT_INTEGER);return LIT_INTEGER;}
+[0-9]+.[0-9]+	{hashPut(LIT_REAL);return LIT_REAL;}
+'.'				{hashPut(LIT_CHAR);return LIT_CHAR;}
 
  /* STRINGS */
-\"(\\.|[^\\"\n])*\" {return LIT_STRING;}
+\"(\\.|[^\\"\n])*\" {hashPut(LIT_STRING);return LIT_STRING;}
 
  /* LINE COUNTER*/
 \n			{lineCounter++;}
@@ -70,13 +78,27 @@ print	{return KW_PRINT;}
 %%
 
  /* SUBROTINES*/
+int initMe(){
+	hm_initialize(200, 0.5, sizeof(int), &hash);
+
+	return 1;
+}
+
 #include "main.c"
 
 int yywrap(void){
-	isRunning = 0;
+	running = 0;
 	return 1;
+}
+
+void hashPut(int code){
+	hm_put(&hash, yytext, &code);
 }
 
 int getLineNumber(void){
 	return lineCounter;
+}
+
+int isRunning(void){
+	return running;
 }

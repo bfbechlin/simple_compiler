@@ -10,6 +10,7 @@
 
 void main(int argc, char* argv[]){
 	int i;
+	initMe();
 	/* keep previous functionality */
 	if (argc > 1) {
 		for(i = 1; i < argc; i++){

@@ -1,11 +1,18 @@
-all: hashmap.o lex.yy.c
-	gcc -o stage1 lex.yy.c hashmap.o
+CC := gcc
 
-lex.yy.c: scanner.l
+.PHONY: all
+all: hashmap.o lex.yy.o
+	$(CC) -o stage1 lex.yy.o hashmap.o
+
+%.o: %.c
+	$(CC) -c $<
+
+scanner.c: scanner.l
 	lex scanner.l
 
-hashmap.o: hashmap.c
-	ggc -c hashmap.c
+etapa1.tgz: clean
+	tar cvfz etapa1.tgz *
 
+.PHONY: clean
 clean:
-	rm lex.yy.c stage1
+	rm -rf scanner.c stage1 etapa1.tgz *.o *.out

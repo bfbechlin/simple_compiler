@@ -23,16 +23,17 @@ void main(int argc, char* argv[]){
 		printf("%c %i\n", i, i);
 	/* add test if nothing else is supplied */
 	} else {
-		int *exp, given; /* expected and given token */
+		int *exp, given, line; /* expected and given token */
 		yyin = fopen("test_tokens.txt", "r");
 
 		exp = expected_codes;
 		while (*exp != -1) {
 			given = yylex();
+			line = getLineNumber();
 			if (given != *exp) {
-				printf("WRONG: in text `%s` expected %d, got %d\n", yytext, *exp, given);
+				printf("WRONG: in text `%s` at line %i expected %d, got %d\n", yytext, *exp, line, given);
 			} else {
-				printf("RIGHT: in text `%s` expected %d, got %d\n", yytext, *exp, given);
+				printf("RIGHT: in text `%s` at line %i expected %d, got %d\n", yytext, *exp, line, given);
 			}
 			exp++;
 		}

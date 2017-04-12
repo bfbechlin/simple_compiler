@@ -1,11 +1,14 @@
  /* DEFINITIONS*/
 %{
 	#include "tokens.h"
+
+	int isRunning = 0;
+
+	int getLineNumber(void);
 	int lineCounter = 1;
 %}
 
 %x comment
-%x string
 
 %%
 
@@ -42,10 +45,11 @@ print	{return KW_PRINT;}
 
  /* LITERALS*/
 [0-9]+			{return LIT_INTEGER;}
-[0-9]+.[0-9]	{return LIT_REAL;}
+[0-9]+.[0-9]+	{return LIT_REAL;}
 '.'				{return LIT_CHAR;}
+
  /* STRINGS */
-\"[^\"|^"\""]*\"		{return LIT_STRING;}
+\"(\\.|[^\\"\n])*\" {return LIT_STRING;}
 
  /* LINE COUNTER*/
 \n			{lineCounter++;}
@@ -59,12 +63,17 @@ print	{return KW_PRINT;}
 <comment>\n		{lineCounter++;}
 <comment>"*/"	BEGIN(INITIAL);
 
+ /* SPACES AND TABS*/
+[ \t]		{}
+ /* ERROR*/
+.			{return TOKEN_ERROR;}
 %%
 
  /* SUBROTINES*/
 #include "main.c"
 
 int yywrap(void){
+	isRunning = 0;
 	return 1;
 }
 

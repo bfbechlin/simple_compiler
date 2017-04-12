@@ -1,5 +1,4 @@
 #include <string.h>
-#include <stdio.h>
 
 #include "hashmap.h"
 
@@ -16,6 +15,25 @@ static unsigned int hm_hash_function(const char *key) {
 	}
 
 	return hash;
+}
+
+void hm_fprint(FILE *stream, struct hashmap *hm, char print_empty) {
+	int i;
+	struct hm_item *item;
+	for (i = 0; i < hm->size; i++) {
+		item = hm->buckets[i];
+
+		if (!print_empty && item == NULL) {
+			continue;
+		}
+
+		fprintf(stream, "%3d: ", i);
+		while (item != NULL) {
+			fprintf(stream, "`%s` -> ", item->key);
+			item = item->next;
+		}
+		fprintf(stream, "NULL\n");
+	}
 }
 
 int hm_initialize(unsigned int size, float load_factor, size_t value_size, struct hashmap *hm) {
@@ -67,15 +85,16 @@ static int hm_grow(struct hashmap *hm) {
 	/* alloc new buckets */
 	hm->size = 2*hm->size;
 	hm->used = 0;
-	hm->buckets = malloc(hm->size*sizeof(struct hm_item *));
+	hm->buckets = calloc(hm->size, sizeof(struct hm_item *));
 
 	if (!hm->buckets) {
 		return -1;
 	}
 
 	/* insert old values */
+	struct hm_item *item;
 	for (i = 0; i < old_size; i++) {
-		struct hm_item *item = old_buckets[i];
+		item = old_buckets[i];
 		while (item != NULL) {
 			hm_put(hm, item->key, item->value);
 			item = item->next;
@@ -118,6 +137,7 @@ int hm_put(struct hashmap *hm, const char *key, const void *value) {
 
 	strcpy(new->key, key);
 	memcpy(new->value, value, hm->value_size);
+	new->next = NULL;
 	*slot = new;
 
 	hm->used++;

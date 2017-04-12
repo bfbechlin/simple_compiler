@@ -2,6 +2,7 @@
 #define HASHMAP_H 1
 
 #include <stdlib.h>
+#include <stdio.h>
 
 /* linked list item in hashmap */
 struct hm_item {
@@ -33,5 +34,8 @@ int hm_get(struct hashmap *hm, const char *key, void *value);
 
 /* Remove (key, value) pair. */
 int hm_remove(struct hashmap *hm, const char *key);
+
+/* Write representation of hashmap keys to stream. */
+void hm_fprint(FILE *stream, struct hashmap *hm, char print_empty);
 
 #endif /* ifndef HASHMAP_H */

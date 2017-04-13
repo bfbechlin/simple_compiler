@@ -53,7 +53,7 @@ print	{return KW_PRINT;}
 
  /* LITERALS*/
 [0-9]+			{hashPut(LIT_INTEGER);return LIT_INTEGER;}
-[0-9]+.[0-9]+	{hashPut(LIT_REAL);return LIT_REAL;}
+[0-9]+\.[0-9]+	{hashPut(LIT_REAL);return LIT_REAL;}
 '.'				{hashPut(LIT_CHAR);return LIT_CHAR;}
 
  /* STRINGS */

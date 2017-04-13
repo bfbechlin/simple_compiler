@@ -62,5 +62,7 @@ int expected_codes[] = {
 	TK_IDENTIFIER, TOKEN_ERROR,
 	
 	TK_IDENTIFIER,
+
+	LIT_INTEGER, '-', LIT_INTEGER,
 	-1
 };

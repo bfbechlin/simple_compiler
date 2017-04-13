@@ -3,7 +3,7 @@
 	#include "tokens.h"
 	#include "hashmap.h"
 
-	int initMe(void);
+	void initMe(void);
 	int getLineNumber(void);
 	int isRunning(void);
 
@@ -78,10 +78,8 @@ print	{return KW_PRINT;}
 %%
 
  /* SUBROTINES*/
-int initMe(){
+void initMe(){
 	hm_initialize(200, 0.5, sizeof(int), &hash);
-
-	return 1;
 }
 
 #include "main.c"

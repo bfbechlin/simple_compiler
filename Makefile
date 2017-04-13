@@ -1,13 +1,15 @@
 CC := gcc
 
 .PHONY: all
-all: hashmap.o lex.yy.o
-	$(CC) -o stage1 lex.yy.o hashmap.o
+all: etapa1
+
+etapa1: hashmap.o lex.yy.o
+	$(CC) -o etapa1 lex.yy.o hashmap.o
 
 %.o: %.c
 	$(CC) -c $<
 
-scanner.c: scanner.l
+lex.yy.c: scanner.l
 	lex scanner.l
 
 etapa1.tgz: clean
@@ -15,4 +17,4 @@ etapa1.tgz: clean
 
 .PHONY: clean
 clean:
-	rm -rf scanner.c stage1 etapa1.tgz *.o *.out
+	rm -rf scanner.c stage1 etapa1.tgz *.o *.out *~

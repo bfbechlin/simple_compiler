@@ -9,7 +9,7 @@ etapa1: hashmap.o lex.yy.o
 %.o: %.c
 	$(CC) -c $<
 
-lex.yy.c: scanner.l
+lex.yy.c: scanner.l main.c
 	lex scanner.l
 
 etapa1.tgz: clean

@@ -79,7 +79,7 @@ print	{return KW_PRINT;}
 
  /* SUBROTINES*/
 void initMe(){
-	hm_initialize(200, 0.5, sizeof(int), &hash);
+	hm_initialize(8, 0.5, sizeof(int), &hash);
 }
 
 #include "main.c"

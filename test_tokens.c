@@ -56,5 +56,11 @@ int expected_codes[] = {
 	LIT_STRING,
 	LIT_STRING,
 	LIT_STRING,
+
+
+
+	TK_IDENTIFIER, TOKEN_ERROR,
+	
+	TK_IDENTIFIER,
 	-1
 };

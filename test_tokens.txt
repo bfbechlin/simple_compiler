@@ -1,6 +1,4 @@
 
-
-
 byte
 short
 long
@@ -58,3 +56,9 @@ afora
 "bla\n"
 "bla\\n"
 "\"bla\""
+/* Multi line
+Comment
+Test*/
+b"
+//Single line comment
+id

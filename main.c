@@ -32,9 +32,9 @@ void main(int argc, char* argv[]){
 			given = yylex();
 			line = getLineNumber();
 			if (given != *exp) {
-				printf("WRONG: in text `%s` at line %i expected %d, got %d\n", yytext, *exp, line, given);
+				printf("WRONG: in text `%s` at line %i expected %d, got %d\n", yytext, line, *exp, given);
 			} else {
-				printf("RIGHT: in text `%s` at line %i expected %d, got %d\n", yytext, *exp, line, given);
+				printf("RIGHT: in text `%s` at line %i expected %d, got %d\n", yytext, line, *exp, given);
 			}
 			exp++;
 		}

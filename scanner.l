@@ -3,7 +3,7 @@
 	#include "tokens.h"
 	#include "hashmap.h"
 
-	int initMe(void);
+	void initMe(void);
 	int getLineNumber(void);
 	int isRunning(void);
 
@@ -53,7 +53,7 @@ print	{return KW_PRINT;}
 
  /* LITERALS*/
 [0-9]+			{hashPut(LIT_INTEGER);return LIT_INTEGER;}
-[0-9]+.[0-9]+	{hashPut(LIT_REAL);return LIT_REAL;}
+[0-9]+\.[0-9]+	{hashPut(LIT_REAL);return LIT_REAL;}
 '.'				{hashPut(LIT_CHAR);return LIT_CHAR;}
 
  /* STRINGS */
@@ -78,10 +78,8 @@ print	{return KW_PRINT;}
 %%
 
  /* SUBROTINES*/
-int initMe(){
-	hm_initialize(200, 0.5, sizeof(int), &hash);
-
-	return 1;
+void initMe(){
+	hm_initialize(8, 0.5, sizeof(int), &hash);
 }
 
 #include "main.c"

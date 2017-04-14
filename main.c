@@ -38,5 +38,7 @@ void main(int argc, char* argv[]){
 			}
 			exp++;
 		}
+		printf("symbol table:\n");
+		hm_fprint(stdout, &hash, 0);
 	}
 }

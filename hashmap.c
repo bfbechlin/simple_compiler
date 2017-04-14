@@ -79,12 +79,12 @@ void hm_terminate(struct hashmap *hm) {
  *
  * Example:
  *
- * If hm->buckets is:
+ * If hash("bar")%size == 0, and hm->buckets is:
  *
  *     0: NULL
  *     1: `foo` -> `baz` -> NULL
  *     2: NULL
- *     3: `baz` -> NULL
+ *     3: NULL
  *
  * Giving hm_find the key "foo", it'll return a pointer to the second
  * position of hm->buckets, and dereferencing that pointer

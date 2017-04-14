@@ -5,13 +5,12 @@
 /* Algorithm from:
  * http://stackoverflow.com/questions/7666509/hash-function-for-string */
 static unsigned int hm_hash_function(const char *key) {
-	int i = 0;
-	char c = key[i];
+	const char *c = key;
 	unsigned int hash = 5381;
 
-	while(c != '\0') {
-		hash = ((hash << 5) + hash) + c;
-		c = key[i++];
+	while(*c != '\0') {
+		hash = ((hash << 5) + hash) + *c;
+		c++;
 	}
 
 	return hash;
@@ -54,12 +53,12 @@ int hm_initialize(unsigned int size, float load_factor, size_t value_size, struc
 	return 0;
 }
 
-static void hm_terminate_item_list(struct hm_item *first_item) {
+static void hm_terminate_bucket(struct hm_item *first_item) {
 	if (first_item == NULL) {
 		return;
 	}
 
-	hm_terminate_item_list(first_item->next);
+	hm_terminate_bucket(first_item->next);
 	free(first_item->key);
 	free(first_item->value);
 	free(first_item);
@@ -69,10 +68,47 @@ void hm_terminate(struct hashmap *hm) {
 	int i;
 
 	for (i = 0; i < hm->size; i++) {
-		hm_terminate_item_list(hm->buckets[i]);
+		hm_terminate_bucket(hm->buckets[i]);
 	}
 
 	free(hm->buckets);
+}
+
+/* Return a pointer to the slot where a key is or to where it should be if
+ * inserted next.
+ *
+ * Example:
+ *
+ * If hm->buckets is:
+ *
+ *     0: NULL
+ *     1: `foo` -> `baz` -> NULL
+ *     2: NULL
+ *     3: `baz` -> NULL
+ *
+ * Giving hm_find the key "foo", it'll return a pointer to the second
+ * position of hm->buckets, and dereferencing that pointer
+ * would give you the address of the item with key "foo".
+ *
+ * Giving hm_find the key "bar", it'll return a pointer to the first
+ * position of hm->buckets, and dereferencing that pointer would give you
+ * NULL.
+ *
+ * Giving hm_find the key "baz", it'll return a pointer to the `next`
+ * member of the item with key "foo", and dereferencing the pointer would give
+ * you the address of the item with key "baz".
+ */
+static struct hm_item **hm_find(struct hashmap *hm, const char *key) {
+	int index = hm_hash_function(key)%hm->size;
+
+	struct hm_item **slot;
+	slot = hm->buckets + index;
+
+	while (*slot != NULL && strcmp((*slot)->key, key) != 0) {
+		slot = &((*slot)->next);
+	}
+
+	return slot;
 }
 
 /* Double the size of the hashmap. */
@@ -84,7 +120,6 @@ static int hm_grow(struct hashmap *hm) {
 
 	/* alloc new buckets */
 	hm->size = 2*hm->size;
-	hm->used = 0;
 	hm->buckets = calloc(hm->size, sizeof(struct hm_item *));
 
 	if (!hm->buckets) {
@@ -92,15 +127,18 @@ static int hm_grow(struct hashmap *hm) {
 	}
 
 	/* insert old values */
-	struct hm_item *item;
+	struct hm_item *curr_item, *next_item;
+	struct hm_item **new_slot;
 	for (i = 0; i < old_size; i++) {
-		item = old_buckets[i];
-		while (item != NULL) {
-			hm_put(hm, item->key, item->value);
-			item = item->next;
-		}
+		curr_item = old_buckets[i];
+		while (curr_item != NULL) {
+			new_slot = hm_find(hm, curr_item->key);
+			*new_slot = curr_item;
 
-		hm_terminate_item_list(old_buckets[i]);
+			next_item = curr_item->next;
+			curr_item->next = NULL;
+			curr_item = next_item;
+		}
 	}
 
 	free(old_buckets);
@@ -109,31 +147,21 @@ static int hm_grow(struct hashmap *hm) {
 }
 
 int hm_put(struct hashmap *hm, const char *key, const void *value) {
-	int index = hm_hash_function(key)%hm->size;
-
-	struct hm_item **slot;
-	slot = hm->buckets + index;
-
-	while (*slot != NULL && strcmp((*slot)->key, key) != 0) {
-		slot = &((*slot)->next);
-	}
+	struct hm_item **slot = hm_find(hm, key);
 
 	if (*slot != NULL) {
 		/* key already present */
 		return -1;
 	}
 
+	/* Before anyone complains about the use of goto:
+	 * http://stackoverflow.com/questions/245742/examples-of-good-gotos-in-c-or-c */
 	struct hm_item *new = malloc(sizeof(struct hm_item));
-	if (new == NULL) {
-		return -2;
-	}
-
+	if (new == NULL) goto alloc_fail1;
 	new->key = malloc(strlen(key) + 1);
+	if (new->key == NULL) goto alloc_fail2;
 	new->value = malloc(hm->value_size);
-	if (new->key == NULL || new->value == NULL) {
-		free(new);
-		return -2;
-	}
+	if (new->value == NULL)	goto alloc_fail3;
 
 	strcpy(new->key, key);
 	memcpy(new->value, value, hm->value_size);
@@ -147,17 +175,17 @@ int hm_put(struct hashmap *hm, const char *key, const void *value) {
 	}
 
 	return 0;
+
+alloc_fail3:
+	free(new->key);
+alloc_fail2:
+	free(new);
+alloc_fail1:
+	return -2;
 }
 
 int hm_get(struct hashmap *hm, const char *key, void *value) {
-	int index = hm_hash_function(key)%hm->size;
-
-	struct hm_item **item;
-	item = hm->buckets + index;
-
-	while (*item != NULL && strcmp((*item)->key, key) != 0) {
-		item = &((*item)->next);
-	}
+	struct hm_item **item = hm_find(hm, key);
 
 	if (*item == NULL) {
 		/* item does not exist */

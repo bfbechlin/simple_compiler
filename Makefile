@@ -17,4 +17,4 @@ etapa1.tgz: clean
 
 .PHONY: clean
 clean:
-	rm -rf scanner.c stage1 etapa1.tgz *.o *.out *~
+	rm -rf etapa1 lex.yy.c scanner.c stage1 etapa1.tgz *.o *.out *~

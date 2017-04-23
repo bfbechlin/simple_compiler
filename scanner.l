@@ -1,6 +1,6 @@
  /* DEFINITIONS*/
 %{
-	#include "tokens.h"
+	#include "parser.h"
 	#include "hashmap.h"
 
 	void initMe(void);
@@ -8,7 +8,7 @@
 	int isRunning(void);
 
 	void hashPut(int code);
-	
+
 	int running = 1;
 	int lineCounter = 1;
 	int tokenCode = 0;
@@ -78,11 +78,9 @@ print	{return KW_PRINT;}
 %%
 
  /* SUBROTINES*/
-void initMe(){
+void initTree(){
 	hm_initialize(8, 0.5, sizeof(int), &hash);
 }
-
-#include "main.c"
 
 int yywrap(void){
 	running = 0;

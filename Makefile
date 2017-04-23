@@ -1,20 +1,26 @@
 CC := gcc
 
 .PHONY: all
-all: etapa1
+all: etapa2
 
-etapa1: hashmap.o lex.yy.o
-	$(CC) -o etapa1 lex.yy.o hashmap.o
+debug: hashmap.o scanner.c parser.c main.o
+	$(CC) -o etapa2 main.o hashmap.o -g
+
+etapa2: hashmap.o scanner.c parser.c main.o
+	$(CC) -o etapa2 main.o hashmap.o
+
+scanner.c: scanner.l
+	lex -o scanner.c scanner.l
+
+parser.c: parser.y
+	yacc -d -o parser.c parser.y
 
 %.o: %.c
 	$(CC) -c $<
 
-lex.yy.c: scanner.l main.c
-	lex scanner.l
-
-etapa1.tgz: clean
-	tar cvfz etapa1.tgz *
+etapa2.tgz: clean
+	tar cvfz etapa2.tgz *
 
 .PHONY: clean
 clean:
-	rm -rf scanner.c stage1 etapa1.tgz *.o *.out *~
+	rm -rf parser.c parser.h scanner.c etapa2 etapa2.tgz *.o  *~

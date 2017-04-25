@@ -1,13 +1,11 @@
 CC := gcc
+DEBUG=
 
 .PHONY: all
 all: etapa2
 
-debug: hashmap.o scanner.c parser.c main.o
-	$(CC) -o etapa2 main.o hashmap.o -g
-
-etapa2: hashmap.o scanner.c parser.c main.o
-	$(CC) -o etapa2 main.o hashmap.o
+etapa2: hashmap.o parser.o scanner.o main.o
+	$(CC) -o etapa2 parser.o scanner.o main.o hashmap.o $(DEBUG)
 
 scanner.c: scanner.l
 	lex -o scanner.c scanner.l

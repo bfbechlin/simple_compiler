@@ -2,23 +2,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.c"
-#include "scanner.c"
+extern void initSymbolsTable(void);
+extern void setInputFile(char* file_name);
+extern int yyparse(void);
 
 #define FILE_OPT_STR 	"-file="
 #define FILE_OPT_NUMBER	6
 
 void main(int argc, char* argv[]){
 	int i;
+	initSymbolsTable();
 	if (argc > 1) {
 		for(i = 1; i < argc; i++){
 			// FILE NAME OPTION
 			if(strncmp(argv[i], FILE_OPT_STR, FILE_OPT_NUMBER) == 0){
-				yyin = fopen(&argv[i][FILE_OPT_NUMBER], "r");
-				printf("FILE_NAME : %s\n", &argv[i][FILE_OPT_NUMBER]);
+				setInputFile(&argv[i][FILE_OPT_NUMBER]);
+				//printf("FILE_NAME : %s\n", &argv[i][FILE_OPT_NUMBER]);
 			}
 		}
 	}
-	yyparse();
-	fprintf(stderr, "SUCESSFUL: program accepted.\n");
+	printf("%d\n", yyparse());
 }

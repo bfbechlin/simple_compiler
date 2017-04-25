@@ -3,11 +3,12 @@
 	#include "parser.h"
 	#include "hashmap.h"
 
-	void initMe(void);
+	void initSymbolsTable(void);
+	void hashPut(int code);
+
+	void setInputFile(char* file_name);
 	int getLineNumber(void);
 	int isRunning(void);
-
-	void hashPut(int code);
 
 	int running = 1;
 	int lineCounter = 1;
@@ -78,13 +79,19 @@ print	{return KW_PRINT;}
 %%
 
  /* SUBROTINES*/
-void initTree(){
-	hm_initialize(8, 0.5, sizeof(int), &hash);
-}
 
 int yywrap(void){
 	running = 0;
 	return 1;
+}
+
+void setInputFile(char* file_name){
+	yyin = fopen(file_name, "r");
+}
+
+
+void initSymbolsTable(){
+	hm_initialize(8, 0.5, sizeof(int), &hash);
 }
 
 void hashPut(int code){

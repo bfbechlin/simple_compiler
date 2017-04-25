@@ -3,13 +3,15 @@
 	#include <stdio.h>
 	#include <string.h>
 
+	extern int getLineNumber(void);
+
 	int yylex(void);
 	void yyerror(char *);
 %}
 
  /* Tokens */
- %token KW_BYTE
  %token KW_SHORT
+ %token KW_BYTE
  %token KW_LONG
  %token KW_FLOAT
  %token KW_DOUBLE
@@ -45,5 +47,7 @@ program:
  /*-----SUBROUTINES-----*/
 
 void yyerror(char *s){
-	fprintf(stderr, "ERROR at %s sentence.\n", s);
+	int line;
+	line = getLineNumber();
+	fprintf(stderr, "ERROR:\t At line %d.\n", line);
 }

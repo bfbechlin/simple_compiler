@@ -31,6 +31,7 @@ then	{return KW_THEN;}
 else	{return KW_ELSE;}
 while 	{return KW_WHILE;}
 for 	{return KW_FOR;}
+to      {return KW_TO;}
 read	{return KW_READ;}
 return	{return KW_RETURN;}
 print	{return KW_PRINT;}
@@ -39,18 +40,18 @@ print	{return KW_PRINT;}
 [,;:\(\)\[\]\{\}\+\-*<>=!&$#/] {return yytext[0];}
 
  /* COMPOSED OPERATORS*/
-"<="	{return OPERATOR_LE;}
-">="	{return OPERATOR_GE;}
-"=="	{return OPERATOR_EQ;}
-"!="	{return OPERATOR_NE;}
-"&&"	{return OPERATOR_AND;}
-"||"	{return OPERATOR_OR;}
+"<="	{return OP_LE;}
+">="	{return OP_GE;}
+"=="	{return OP_EQ;}
+"!="	{return OP_NE;}
+"&&"	{return OP_AND;}
+"||"	{return OP_OR;}
 
  /* IDENTIFIERS*/
-[_A-Za-z][_A-Za-z0-9]*	{symtab_insert(yytext, SYMBOL_IDENTIFIER);return TK_IDENTIFIER;}
+[_A-Za-z][_A-Za-z0-9]*	{symtab_insert(yytext, SYMBOL_IDENTIFIER);return TK_ID;}
 
  /* LITERALS*/
-[0-9]+			{symtab_insert(yytext, SYMBOL_LIT_INT);return LIT_INTEGER;}
+[0-9]+			{symtab_insert(yytext, SYMBOL_LIT_INT);return LIT_INT;}
 [0-9]+\.[0-9]+	{symtab_insert(yytext, SYMBOL_LIT_REAL);return LIT_REAL;}
 '.'				{symtab_insert(yytext, SYMBOL_LIT_CHAR);return LIT_CHAR;}
 

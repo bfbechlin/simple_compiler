@@ -13,7 +13,8 @@ void symtab_insert(char* symbol, int code){
 }
 
 void symtab_print(void){
-	hm_fprint(stdin, &hash, 0);
+	printf("\nSYMBOLS TABLE:\n");
+	hm_fprint(stdout, &hash, 0);
 }
 
 void symtab_destroy(void){

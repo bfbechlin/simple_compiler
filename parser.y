@@ -39,6 +39,10 @@
 %token TOKEN_ERROR
 
 %start prog
+%left OP_EQ OP_LE OP_GE OP_NE '>' '<'
+%left OP_AND OP_OR '!'
+%left '+' '-'
+%left '*' '/'
 
 %%
  /*-----RULES------*/
@@ -52,7 +56,7 @@ decl: func | var | vec ;
 var: TK_ID ':' type lit ;
 
 vec: TK_ID ':' type '[' LIT_INT ']' vec_init ;
-vec_init: vec_init ' ' lit | ;
+vec_init: vec_init lit | ;
 
 type: KW_BYTE
 	| KW_SHORT
@@ -93,7 +97,7 @@ attr: TK_ID '=' expr | TK_ID '#' expr '=' expr ;
 read: KW_READ TK_ID ;
 
 print: KW_PRINT print_list ;
-print_list: print_list ' ' print_arg | print_arg;
+print_list: print_list print_arg | print_arg;
 print_arg: LIT_STRING | expr ;
 
 return: KW_RETURN expr ;

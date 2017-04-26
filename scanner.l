@@ -1,19 +1,16 @@
  /* DEFINITIONS*/
 %{
+	#include "symbols_table.h"
 	#include "parser.h"
-	#include "hashmap.h"
 
-	void initSymbolsTable(void);
-	void hashPut(int code);
+	int set_input_file(char* file_name);
 
-	void setInputFile(char* file_name);
 	int getLineNumber(void);
 	int isRunning(void);
 
 	int running = 1;
 	int lineCounter = 1;
 	int tokenCode = 0;
-	struct hashmap hash;
 
 %}
 
@@ -50,15 +47,15 @@ print	{return KW_PRINT;}
 "||"	{return OPERATOR_OR;}
 
  /* IDENTIFIERS*/
-[_A-Za-z][_A-Za-z0-9]*	{hashPut(TK_IDENTIFIER);return TK_IDENTIFIER;}
+[_A-Za-z][_A-Za-z0-9]*	{symtab_insert(yytext, SYMBOL_IDENTIFIER);return TK_IDENTIFIER;}
 
  /* LITERALS*/
-[0-9]+			{hashPut(LIT_INTEGER);return LIT_INTEGER;}
-[0-9]+\.[0-9]+	{hashPut(LIT_REAL);return LIT_REAL;}
-'.'				{hashPut(LIT_CHAR);return LIT_CHAR;}
+[0-9]+			{symtab_insert(yytext, SYMBOL_LIT_INT);return LIT_INTEGER;}
+[0-9]+\.[0-9]+	{symtab_insert(yytext, SYMBOL_LIT_REAL);return LIT_REAL;}
+'.'				{symtab_insert(yytext, SYMBOL_LIT_CHAR);return LIT_CHAR;}
 
  /* STRINGS */
-\"(\\.|[^\\"\n])*\" {hashPut(LIT_STRING);return LIT_STRING;}
+\"(\\.|[^\\"\n])*\" {symtab_insert(yytext, SYMBOL_LIT_STRING);return LIT_STRING;}
 
  /* LINE COUNTER*/
 \n			{lineCounter++;}
@@ -85,17 +82,10 @@ int yywrap(void){
 	return 1;
 }
 
-void setInputFile(char* file_name){
-	yyin = fopen(file_name, "r");
-}
-
-
-void initSymbolsTable(){
-	hm_initialize(8, 0.5, sizeof(int), &hash);
-}
-
-void hashPut(int code){
-	hm_put(&hash, yytext, &code);
+int set_input_file(char* file_name){
+	if(yyin = fopen(file_name, "r"))
+		return 1;
+	return 0;
 }
 
 int getLineNumber(void){

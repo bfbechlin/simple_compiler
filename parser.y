@@ -1,6 +1,7 @@
  /*-----DEFINITIONS-----*/
 %{
 	#include <stdio.h>
+	#include <stdlib.h>
 	#include <string.h>
 
 	extern int getLineNumber(void);
@@ -49,5 +50,6 @@ program:
 void yyerror(char *s){
 	int line;
 	line = getLineNumber();
-	fprintf(stderr, "ERROR:\t At line %d.\n", line);
+	fprintf(stderr, "ERROR:\n\t Program was rejected at line %d.\n", line);
+	exit(3);
 }

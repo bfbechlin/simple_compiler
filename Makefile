@@ -4,8 +4,8 @@ DEBUG=
 .PHONY: all
 all: etapa2
 
-etapa2: hashmap.o parser.o scanner.o main.o
-	$(CC) -o etapa2 parser.o scanner.o main.o hashmap.o $(DEBUG)
+etapa2: hashmap.o parser.o scanner.o symbols_table.o main.o
+	$(CC) -o etapa2 parser.o scanner.o symbols_table.o main.o hashmap.o $(DEBUG)
 
 scanner.c: scanner.l
 	lex -o scanner.c scanner.l

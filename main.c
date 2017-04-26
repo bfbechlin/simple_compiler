@@ -1,25 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "symbols_table.h"
 
-extern void initSymbolsTable(void);
-extern void setInputFile(char* file_name);
+extern int set_input_file(char* file_name);
 extern int yyparse(void);
-
-#define FILE_OPT_STR 	"-file="
-#define FILE_OPT_NUMBER	6
 
 void main(int argc, char* argv[]){
 	int i;
-	initSymbolsTable();
-	if (argc > 1) {
-		for(i = 1; i < argc; i++){
-			// FILE NAME OPTION
-			if(strncmp(argv[i], FILE_OPT_STR, FILE_OPT_NUMBER) == 0){
-				setInputFile(&argv[i][FILE_OPT_NUMBER]);
-				//printf("FILE_NAME : %s\n", &argv[i][FILE_OPT_NUMBER]);
-			}
+	symtab_init();
+	if(argc > 2){
+		fprintf(stderr,
+			"ERRO:\n\t Arguments not suported.\nUSAGE:\
+			\n\t [input file name]: name of file to be analysed.\n");
+		exit(1);
+	}
+	if(argc > 1) {
+		if(!set_input_file(argv[1])){
+			fprintf(stderr, "ERRO:\n\t File [%s] not found.\n", argv[1]);
+			exit(2);
 		}
 	}
-	printf("%d\n", yyparse());
+	yyparse();
+	printf("SUCESS:\n\t Program was accepted.\n");
+	symtab_print();
+	symtab_destroy();
+	exit(0);
 }

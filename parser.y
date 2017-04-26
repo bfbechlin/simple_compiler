@@ -85,7 +85,7 @@ fbody: cmd ;
 
 /* command block */
 
-block: '{' '}' | '{' cmd_list '}' ;
+block: '{' cmd_list '}' ;
 cmd_list: cmd_list cmd ';' | ;
 
 /* single commands single */
@@ -97,7 +97,7 @@ attr: TK_ID '=' expr | TK_ID '#' expr '=' expr ;
 read: KW_READ TK_ID ;
 
 print: KW_PRINT print_list ;
-print_list: print_list print_arg | print_arg;
+print_list: print_list print_arg | print_arg ;
 print_arg: LIT_STRING | expr ;
 
 return: KW_RETURN expr ;
@@ -136,8 +136,6 @@ ctrl: KW_WHEN '(' expr ')' KW_THEN cmd
  /*-----SUBROUTINES-----*/
 
 void yyerror(char *s){
-	int line;
-	line = getLineNumber();
-	fprintf(stderr, "ERROR:\n\t Program was rejected at line %d.\n", line);
+	fprintf(stderr, "ERROR:\n\t Program was rejected at line %d.\n", getLineNumber());
 	exit(3);
 }

@@ -1,13 +1,13 @@
  /*-----DEFINITIONS-----*/
 %{
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <string.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
 
-	extern int getLineNumber(void);
+    extern int getLineNumber(void);
 
-	int yylex(void);
-	void yyerror(char *);
+    int yylex(void);
+    void yyerror(char *);
 %}
 
 /* Tokens */
@@ -48,11 +48,11 @@
  /*-----RULES------*/
 
 prog: prog decl ';'
-	| ;
+    | ;
 
 decl: func
-	| var
-	| vec ;
+    | var
+    | vec ;
 
 /* varibales */
 
@@ -60,14 +60,14 @@ var: TK_ID ':' type lit ;
 
 vec: TK_ID ':' type '[' LIT_INT ']' vec_init ;
 vec_init: vec_init lit
-		| ;
+        | ;
 
 type: KW_BYTE
-	| KW_SHORT
-	| KW_LONG
-	| KW_FLOAT
-	| KW_DOUBLE
-	;
+    | KW_SHORT
+    | KW_LONG
+    | KW_FLOAT
+    | KW_DOUBLE
+    ;
 
 lit: LIT_INT
    | LIT_REAL
@@ -81,11 +81,11 @@ func: fheader fbody ;
 fheader: type TK_ID '(' params_list ')' ;
 
 params_list: params
-		   | ;
+           | ;
 
 params: params_rest type TK_ID ;
 params_rest: params_rest type TK_ID ','
-		   | ;
+           | ;
 
 fbody: cmd ;
 
@@ -105,60 +105,60 @@ cmd: attr
    | ;
 
 attr: TK_ID '=' expr
-	| TK_ID '#' expr '=' expr ;
+    | TK_ID '#' expr '=' expr ;
 
 read: KW_READ TK_ID ;
 
 print: KW_PRINT print_list ;
 print_list: print_list print_arg
-		  | print_arg ;
+          | print_arg ;
 print_arg: LIT_STRING
-		 | expr ;
+         | expr ;
 
 return: KW_RETURN expr ;
 
 /* expressions */
 
 expr: TK_ID
-	| TK_ID '[' expr ']'
-	| LIT_INT
-	| LIT_CHAR
-	| LIT_REAL
-	| TK_ID '(' args_list ')'
-	| '(' expr ')'
+    | TK_ID '[' expr ']'
+    | LIT_INT
+    | LIT_CHAR
+    | LIT_REAL
+    | TK_ID '(' args_list ')'
+    | '(' expr ')'
     | expr '+' expr
-	| expr '-' expr
-	| expr '*' expr
-	| expr '/' expr
-	| expr '<' expr
-	| expr '>' expr
-	| '!' expr
-	| expr OP_LE expr
-	| expr OP_GE expr
-	| expr OP_EQ expr
-	| expr OP_NE expr
-	| expr OP_AND expr
-	| expr OP_OR expr
-	;
+    | expr '-' expr
+    | expr '*' expr
+    | expr '/' expr
+    | expr '<' expr
+    | expr '>' expr
+    | '!' expr
+    | expr OP_LE expr
+    | expr OP_GE expr
+    | expr OP_EQ expr
+    | expr OP_NE expr
+    | expr OP_AND expr
+    | expr OP_OR expr
+    ;
 
 args_list: args
-		 | ;
+         | ;
 args: args_rest expr ;
 args_rest: args_rest expr ','
-		 | ;
+         | ;
 
 /* control */
 
 ctrl: KW_WHEN '(' expr ')' KW_THEN cmd
     | KW_WHEN '(' expr ')' KW_THEN cmd KW_ELSE cmd
-	| KW_WHILE '(' expr ')' cmd
-	| KW_FOR '(' TK_ID'=' expr KW_TO expr ')' cmd
-	;
+    | KW_WHILE '(' expr ')' cmd
+    | KW_FOR '(' TK_ID'=' expr KW_TO expr ')' cmd
+    ;
 
 %%
  /*-----SUBROUTINES-----*/
 
 void yyerror(char *s){
-	fprintf(stderr, "ERROR:\n\t Program was rejected at line %d.\n", getLineNumber());
-	exit(3);
+    fprintf(stderr, "ERROR:\n\t Program was rejected at line %d.\n", getLineNumber());
+    exit(3);
 }

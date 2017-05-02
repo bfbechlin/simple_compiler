@@ -47,16 +47,20 @@
 %%
  /*-----RULES------*/
 
-prog: prog decl ';' | ;
+prog: prog decl ';'
+	| ;
 
-decl: func | var | vec ;
+decl: func
+	| var
+	| vec ;
 
 /* varibales */
 
 var: TK_ID ':' type lit ;
 
 vec: TK_ID ':' type '[' LIT_INT ']' vec_init ;
-vec_init: vec_init lit | ;
+vec_init: vec_init lit
+		| ;
 
 type: KW_BYTE
 	| KW_SHORT
@@ -76,10 +80,12 @@ func: fheader fbody ;
 
 fheader: type TK_ID '(' params_list ')' ;
 
-params_list: params | ;
+params_list: params
+		   | ;
 
 params: params_rest type TK_ID ;
-params_rest: params_rest type TK_ID ',' | ;
+params_rest: params_rest type TK_ID ','
+		   | ;
 
 fbody: cmd ;
 
@@ -90,21 +96,36 @@ cmd_list: cmd_list cmd ';' | ;
 
 /* single commands single */
 
-cmd: attr | ctrl | read | print | return | block | ;
+cmd: attr
+   | ctrl
+   | read
+   | print
+   | return
+   | block
+   | ;
 
-attr: TK_ID '=' expr | TK_ID '#' expr '=' expr ;
+attr: TK_ID '=' expr
+	| TK_ID '#' expr '=' expr ;
 
 read: KW_READ TK_ID ;
 
 print: KW_PRINT print_list ;
-print_list: print_list print_arg | print_arg ;
-print_arg: LIT_STRING | expr ;
+print_list: print_list print_arg
+		  | print_arg ;
+print_arg: LIT_STRING
+		 | expr ;
 
 return: KW_RETURN expr ;
 
 /* expressions */
 
-expr: TK_ID | TK_ID '[' expr ']' | LIT_INT | LIT_CHAR | LIT_REAL | TK_ID '(' args_list ')'
+expr: TK_ID
+	| TK_ID '[' expr ']'
+	| LIT_INT
+	| LIT_CHAR
+	| LIT_REAL
+	| TK_ID '(' args_list ')'
+	| '(' expr ')'
     | expr '+' expr
 	| expr '-' expr
 	| expr '*' expr
@@ -120,9 +141,11 @@ expr: TK_ID | TK_ID '[' expr ']' | LIT_INT | LIT_CHAR | LIT_REAL | TK_ID '(' arg
 	| expr OP_OR expr
 	;
 
-args_list: args | ;
+args_list: args
+		 | ;
 args: args_rest expr ;
-args_rest: args_rest expr ',' | ;
+args_rest: args_rest expr ','
+		 | ;
 
 /* control */
 

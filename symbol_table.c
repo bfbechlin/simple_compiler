@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "hashmap.h"
 #include "symbol_table.h"
 

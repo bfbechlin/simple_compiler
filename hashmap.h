@@ -1,6 +1,8 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H 1
 
+#include <stdio.h>
+
 /* linked list item in hashmap */
 struct hm_item {
 	char *key;

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "symbols_table.h"
+#include "symbol_table.h"
 
 extern int set_input_file(char* file_name);
 extern int yyparse(void);

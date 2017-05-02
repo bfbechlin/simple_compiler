@@ -1,6 +1,6 @@
  /* DEFINITIONS*/
 %{
-	#include "symbols_table.h"
+	#include "symbol_table.h"
 	#include "parser.h"
 
 	int set_input_file(char* file_name);

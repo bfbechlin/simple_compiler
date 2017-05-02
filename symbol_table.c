@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "hashmap.h"
-#include "symbols_table.h"
+#include "symbol_table.h"
 
 struct hashmap hash;
 

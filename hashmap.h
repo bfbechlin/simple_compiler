@@ -28,6 +28,9 @@ void hm_terminate(struct hashmap *hm);
 /* Insert (key, value) pair. */
 int hm_put(struct hashmap *hm, const char *key, const void *value);
 
+/* Retrieve a reference to an item */
+struct hm_item *hm_getref(struct hashmap *hm, const char *key);
+
 /* Retrive (key, value) pair. */
 int hm_get(struct hashmap *hm, const char *key, void *value);
 

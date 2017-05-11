@@ -184,6 +184,12 @@ alloc_fail1:
 	return -2;
 }
 
+struct hm_item *hm_getref(struct hashmap *hm, const char *key) {
+	struct hm_item **item = hm_find(hm, key);
+
+	return *item;
+}
+
 int hm_get(struct hashmap *hm, const char *key, void *value) {
 	struct hm_item **item = hm_find(hm, key);
 

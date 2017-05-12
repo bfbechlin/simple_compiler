@@ -10,6 +10,17 @@
 #define AST_SUB 2
 #define AST_MUL 3
 #define AST_DIV 4
+#define AST_PROG 5
+#define AST_KW_BYTE 6
+#define AST_KW_SHORT 7
+#define AST_KW_LONG 8
+#define AST_KW_FLOAT 9
+#define AST_KW_DOUBLE 10
+#define AST_LIT_INT 11
+#define AST_LIT_REAL 12
+#define AST_LIT_CHAR 13
+#define AST_DECL_LIST 14
+#define AST_VAR 15
 
 struct astree {
 	int type;

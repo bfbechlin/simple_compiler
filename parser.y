@@ -3,12 +3,20 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+	#include "hashmap.h"
+	#include "astree.h"
 
     extern int getLineNumber(void);
 
+	struct astree *program;
     int yylex(void);
     void yyerror(char *);
 %}
+
+%union {
+	struct hm_item *symbol;
+	struct astree *tree;
+}
 
 /* Tokens */
 %token KW_SHORT
@@ -31,12 +39,14 @@
 %token OP_NE
 %token OP_AND
 %token OP_OR
-%token TK_ID
-%token LIT_INT
-%token LIT_REAL
-%token LIT_CHAR
-%token LIT_STRING
+%token <symbol> TK_ID
+%token <symbol> LIT_INT
+%token <symbol> LIT_REAL
+%token <symbol> LIT_CHAR
+%token <symbol> LIT_STRING
 %token TOKEN_ERROR
+
+%type <tree> prog decl_list decl func type var lit
 
 %start prog
 %left OP_EQ OP_LE OP_GE OP_NE '>' '<'
@@ -47,112 +57,115 @@
 %%
  /*-----RULES------*/
 
-prog: prog decl ';'
-    | ;
+prog: decl_list { program = ast_create(AST_PROG, NULL, $1, NULL, NULL, NULL); } ;
 
-decl: func
-    | var
-    | vec ;
+decl_list: decl_list decl ';' { $$ = ast_create(AST_DECL_LIST, NULL, $1, $2, NULL, NULL); }
+   		 | { $$ = NULL; } ;
+
+decl: func { }
+    | var { $$ = $1; }
+    | vec { } ;
 
 /* varibales */
 
-var: TK_ID ':' type lit ;
+var: TK_ID ':' type lit { $$ = ast_create(AST_VAR, yylval.symbol, $3, $4, NULL, NULL); } ;
 
-vec: TK_ID ':' type '[' LIT_INT ']' vec_init ;
-vec_init: vec_init lit
+vec: TK_ID ':' type '[' LIT_INT ']' vec_init { } ;
+vec_init: vec_init lit { }
         | ;
 
-type: KW_BYTE
-    | KW_SHORT
-    | KW_LONG
-    | KW_FLOAT
-    | KW_DOUBLE
+type: KW_BYTE { $$ = ast_create(AST_KW_BYTE, NULL, NULL, NULL, NULL, NULL); }
+    | KW_SHORT { $$ = ast_create(AST_KW_SHORT, NULL, NULL, NULL, NULL, NULL); }
+    | KW_LONG { $$ = ast_create(AST_KW_LONG, NULL, NULL, NULL, NULL, NULL); }
+    | KW_FLOAT { $$ = ast_create(AST_KW_FLOAT, NULL, NULL, NULL, NULL, NULL); }
+    | KW_DOUBLE { $$ = ast_create(AST_KW_DOUBLE, NULL, NULL, NULL, NULL, NULL); }
     ;
 
-lit: LIT_INT
-   | LIT_REAL
-   | LIT_CHAR
+lit: LIT_INT { $$ = ast_create(AST_LIT_INT, yylval.symbol, NULL, NULL, NULL, NULL); }
+   | LIT_REAL { $$ = ast_create(AST_LIT_REAL, yylval.symbol, NULL, NULL, NULL, NULL); }
+   | LIT_CHAR { $$ = ast_create(AST_LIT_CHAR, yylval.symbol, NULL, NULL, NULL, NULL); }
    ;
 
 /* functions */
 
-func: fheader fbody ;
+func: fheader fbody { } ;
 
-fheader: type TK_ID '(' params_list ')' ;
+fheader: type TK_ID '(' params_list ')' { } ;
 
-params_list: params
+params_list: params { }
            | ;
 
-params: params_rest type TK_ID ;
-params_rest: params_rest type TK_ID ','
+params: params_rest type TK_ID { } ;
+params_rest: params_rest type TK_ID ',' { }
            | ;
 
-fbody: cmd ;
+fbody: cmd { } ;
 
 /* command block */
 
-block: '{' cmd_list '}' ;
-cmd_list: cmd_list cmd ';' | ;
+block: '{' cmd_list '}' { } ;
+cmd_list: cmd_list cmd ';' { }
+		| ;
 
 /* single commands single */
 
-cmd: attr
-   | ctrl
-   | read
-   | print
-   | return
-   | block
+cmd: attr { }
+   | ctrl { }
+   | read { }
+   | print { }
+   | return { }
+   | block { }
    | ;
 
-attr: TK_ID '=' expr
-    | TK_ID '#' expr '=' expr ;
+attr: TK_ID '=' expr { }
+    | TK_ID '#' expr '=' expr { } ;
 
-read: KW_READ TK_ID ;
+read: KW_READ TK_ID { } ;
 
-print: KW_PRINT print_list ;
-print_list: print_list print_arg
-          | print_arg ;
-print_arg: LIT_STRING
-         | expr ;
+print: KW_PRINT print_list { } ;
+print_list: print_list print_arg { }
+          | print_arg { } ;
+print_arg: LIT_STRING { }
+         | expr { } ;
 
-return: KW_RETURN expr ;
+return: KW_RETURN expr { } ;
 
 /* expressions */
 
-expr: TK_ID
-    | TK_ID '[' expr ']'
-    | LIT_INT
-    | LIT_CHAR
-    | LIT_REAL
-    | TK_ID '(' args_list ')'
-    | '(' expr ')'
-    | expr '+' expr
-    | expr '-' expr
-    | expr '*' expr
-    | expr '/' expr
-    | expr '<' expr
-    | expr '>' expr
-    | '!' expr
-    | expr OP_LE expr
-    | expr OP_GE expr
-    | expr OP_EQ expr
-    | expr OP_NE expr
-    | expr OP_AND expr
-    | expr OP_OR expr
+expr: TK_ID { }
+    | TK_ID '[' expr ']' { }
+    | LIT_INT { }
+    | LIT_CHAR { }
+    | LIT_REAL { }
+    | TK_ID '(' args_list ')' { }
+    | '(' expr ')' { }
+    | expr '+' expr { }
+    | expr '-' expr { }
+    | expr '*' expr { }
+    | expr '/' expr { }
+    | expr '<' expr { }
+    | expr '>' expr { }
+    | '!' expr { }
+    | expr OP_LE expr { }
+    | expr OP_GE expr { }
+    | expr OP_EQ expr { }
+    | expr OP_NE expr { }
+    | expr OP_AND expr { }
+    | expr OP_OR expr { }
     ;
 
-args_list: args
+args_list: args { }
          | ;
-args: args_rest expr ;
-args_rest: args_rest expr ','
+args: args_rest expr { } ;
+args_rest: args_rest expr ',' { }
          | ;
 
 /* control */
 
-ctrl: KW_WHEN '(' expr ')' KW_THEN cmd
-    | KW_WHEN '(' expr ')' KW_THEN cmd KW_ELSE cmd
-    | KW_WHILE '(' expr ')' cmd
-    | KW_FOR '(' TK_ID'=' expr KW_TO expr ')' cmd
+ctrl: KW_WHEN '(' expr ')' KW_THEN cmd { }
+    | KW_WHEN '(' expr ')' KW_THEN cmd KW_ELSE cmd { }
+    | KW_WHILE '(' expr ')' cmd { }
+    | KW_FOR '(' TK_ID'=' expr KW_TO expr ')' cmd { }
     ;
 
 %%

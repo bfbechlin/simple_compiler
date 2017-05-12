@@ -6,7 +6,7 @@
 
 extern int set_input_file(char* file_name);
 extern int yyparse(void);
-extern struct astree program;
+extern struct astree *program;
 
 void main(int argc, char* argv[]){
 	int i;
@@ -26,7 +26,7 @@ void main(int argc, char* argv[]){
 	yyparse();
 	printf("SUCESS:\n\t Program was accepted.\n");
 	symtab_print();
-	ast_fprint(stdout, 0, &program);
+	ast_fprint(stdout, 0, program);
 	symtab_destroy();
 	exit(0);
 }

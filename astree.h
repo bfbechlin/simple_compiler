@@ -16,11 +16,8 @@
 #define AST_KW_LONG 8
 #define AST_KW_FLOAT 9
 #define AST_KW_DOUBLE 10
-#define AST_LIT_INT 11
-#define AST_LIT_REAL 12
-#define AST_LIT_CHAR 13
-#define AST_DECL_LIST 14
-#define AST_VAR 15
+#define AST_DECL_LIST 11
+#define AST_VAR 12
 
 struct astree {
 	int type;

@@ -1,10 +1,7 @@
 CC := gcc
 
-.PHONY: all
-all: etapa2
-
-etapa2: hashmap.o parser.o scanner.o symbol_table.o main.o
-	$(CC) -o $@ $^
+etapa3: hashmap.o astree.o parser.o scanner.o symbol_table.o main.o
+	$(CC) -g -o $@ $^
 
 scanner.c: scanner.l
 	lex -o $@ $<

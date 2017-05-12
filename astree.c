@@ -30,7 +30,15 @@ static const char *type_to_string[] = {
 	"+",
 	"-",
 	"*",
-	"/"
+	"/",
+	"prog",
+	"kw_byte",
+	"kw_short",
+	"kw_long",
+	"kw_float",
+	"kw_double",
+	"decl_list",
+	"var"
 };
 
 void ast_fprint(FILE *stream, int level, struct astree *tree) {

@@ -9,8 +9,9 @@ void symtab_init(void){
 	hm_initialize(8, 0.5, sizeof(int), &hash);
 }
 
-void symtab_insert(char* symbol, int code){
+struct hm_item *symtab_insert(char* symbol, int code){
 	hm_put(&hash, symbol, &code);
+	return hm_getref(&hash, symbol);
 }
 
 void symtab_print(void){

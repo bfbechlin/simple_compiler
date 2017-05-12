@@ -1,0 +1,2 @@
+a: short 0; f: float 10.55;
+i: long 0;

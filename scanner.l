@@ -48,12 +48,12 @@ print	{return KW_PRINT;}
 "||"	{return OP_OR;}
 
  /* IDENTIFIERS*/
-[_A-Za-z][_A-Za-z0-9]*	{symtab_insert(yytext, SYMBOL_IDENTIFIER);return TK_ID;}
+[_A-Za-z][_A-Za-z0-9]*	{yylval.symbol = symtab_insert(yytext, SYMBOL_IDENTIFIER);return TK_ID;}
 
  /* LITERALS*/
-[0-9]+			{symtab_insert(yytext, SYMBOL_LIT_INT);return LIT_INT;}
-[0-9]+\.[0-9]+	{symtab_insert(yytext, SYMBOL_LIT_REAL);return LIT_REAL;}
-'.'				{symtab_insert(yytext, SYMBOL_LIT_CHAR);return LIT_CHAR;}
+[0-9]+			{yylval.symbol = symtab_insert(yytext, SYMBOL_LIT_INT);return LIT_INT;}
+[0-9]+\.[0-9]+	{yylval.symbol = symtab_insert(yytext, SYMBOL_LIT_REAL);return LIT_REAL;}
+'.'				{yylval.symbol = symtab_insert(yytext, SYMBOL_LIT_CHAR);return LIT_CHAR;}
 
  /* STRINGS */
 \"(\\.|[^\\"\n])*\" {symtab_insert(yytext, SYMBOL_LIT_STRING);return LIT_STRING;}

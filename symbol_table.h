@@ -8,7 +8,7 @@
 #define SYMBOL_IDENTIFIER	5
 
 void symtab_init(void);
-void symtab_insert(char* symbol, int code);
+struct hm_item *symtab_insert(char* symbol, int code);
 void symtab_print(void);
 void symtab_destroy(void);
 

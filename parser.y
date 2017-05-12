@@ -81,9 +81,9 @@ type: KW_BYTE { $$ = ast_create(AST_KW_BYTE, NULL, NULL, NULL, NULL, NULL); }
     | KW_DOUBLE { $$ = ast_create(AST_KW_DOUBLE, NULL, NULL, NULL, NULL, NULL); }
     ;
 
-lit: LIT_INT { $$ = ast_create(AST_LIT_INT, yylval.symbol, NULL, NULL, NULL, NULL); }
-   | LIT_REAL { $$ = ast_create(AST_LIT_REAL, yylval.symbol, NULL, NULL, NULL, NULL); }
-   | LIT_CHAR { $$ = ast_create(AST_LIT_CHAR, yylval.symbol, NULL, NULL, NULL, NULL); }
+lit: LIT_INT { $$ = ast_create(AST_SYM, yylval.symbol, NULL, NULL, NULL, NULL); }
+   | LIT_REAL { $$ = ast_create(AST_SYM, yylval.symbol, NULL, NULL, NULL, NULL); }
+   | LIT_CHAR { $$ = ast_create(AST_SYM, yylval.symbol, NULL, NULL, NULL, NULL); }
    ;
 
 /* functions */

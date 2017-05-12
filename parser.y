@@ -46,7 +46,7 @@
 %token <symbol> LIT_STRING
 %token TOKEN_ERROR
 
-%type <tree> prog decl_list decl func type var lit
+%type <tree> prog decl_list decl func type var lit ident
 
 %start prog
 %left OP_EQ OP_LE OP_GE OP_NE '>' '<'
@@ -66,11 +66,14 @@ decl: func { }
     | var { $$ = $1; }
     | vec { } ;
 
+/* identifier */
+ident: TK_ID {$$ = ast_create(AST_SYM, yyval.symbol, NULL, NULL, NULL, NULL);};
+
 /* varibales */
 
-var: TK_ID ':' type lit { $$ = ast_create(AST_VAR, yylval.symbol, $3, $4, NULL, NULL); } ;
+var: ident ':' type lit { $$ = ast_create(AST_VAR, NULL, $1, $3, $4, NULL); } ;
 
-vec: TK_ID ':' type '[' LIT_INT ']' vec_init { } ;
+vec: ident ':' type '[' LIT_INT ']' vec_init { } ;
 vec_init: vec_init lit { }
         | ;
 
@@ -90,13 +93,13 @@ lit: LIT_INT { $$ = ast_create(AST_SYM, yylval.symbol, NULL, NULL, NULL, NULL); 
 
 func: fheader fbody { } ;
 
-fheader: type TK_ID '(' params_list ')' { } ;
+fheader: type ident '(' params_list ')' { } ;
 
 params_list: params { }
            | ;
 
-params: params_rest type TK_ID { } ;
-params_rest: params_rest type TK_ID ',' { }
+params: params_rest type ident { } ;
+params_rest: params_rest type ident ',' { }
            | ;
 
 fbody: cmd { } ;
@@ -117,10 +120,10 @@ cmd: attr { }
    | block { }
    | ;
 
-attr: TK_ID '=' expr { }
-    | TK_ID '#' expr '=' expr { } ;
+attr: ident '=' expr { }
+    | ident '#' expr '=' expr { } ;
 
-read: KW_READ TK_ID { } ;
+read: KW_READ ident { } ;
 
 print: KW_PRINT print_list { } ;
 print_list: print_list print_arg { }
@@ -132,12 +135,12 @@ return: KW_RETURN expr { } ;
 
 /* expressions */
 
-expr: TK_ID { }
-    | TK_ID '[' expr ']' { }
+expr: ident {}
+    | ident '[' expr ']' { }
     | LIT_INT { }
     | LIT_CHAR { }
     | LIT_REAL { }
-    | TK_ID '(' args_list ')' { }
+    | ident '(' args_list ')' { }
     | '(' expr ')' { }
     | expr '+' expr { }
     | expr '-' expr { }
@@ -165,7 +168,7 @@ args_rest: args_rest expr ',' { }
 ctrl: KW_WHEN '(' expr ')' KW_THEN cmd { }
     | KW_WHEN '(' expr ')' KW_THEN cmd KW_ELSE cmd { }
     | KW_WHILE '(' expr ')' cmd { }
-    | KW_FOR '(' TK_ID'=' expr KW_TO expr ')' cmd { }
+    | KW_FOR '(' ident'=' expr KW_TO expr ')' cmd { }
     ;
 
 %%

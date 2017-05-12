@@ -32,11 +32,11 @@ static const char *type_to_string[] = {
 	"*",
 	"/",
 	"prog",
-	"kw_byte",
-	"kw_short",
-	"kw_long",
-	"kw_float",
-	"kw_double",
+	"byte",
+	"short",
+	"long",
+	"float",
+	"double",
 	"decl_list",
 	"var"
 };
@@ -60,4 +60,47 @@ void ast_fprint(FILE *stream, int level, struct astree *tree) {
 	for (i = 0; i < AST_MAXCHILDREN; i++) {
 		ast_fprint(stream, level + 1, tree->children[i]);
 	}
+}
+
+void ast_make_source(FILE* stream, struct astree* tree){
+	if (!tree)
+		return;
+
+	switch(tree->type){
+		case AST_SYM:
+			fprintf(stream, "%s", tree->symbol->key);
+			break;
+		/* Operators*/
+		case AST_ADD: case AST_SUB: case AST_MUL: case AST_DIV:
+			ast_make_source(stream, tree->children[0]);
+			fprintf(stream, "%s", type_to_string[tree->type]);
+			ast_make_source(stream, tree->children[1]);
+			break;
+		/* Types*/
+		case AST_KW_BYTE: case AST_KW_SHORT: case AST_KW_LONG:
+		case AST_KW_FLOAT: case AST_KW_DOUBLE:
+			fprintf(stream, "%s", type_to_string[tree->type]);
+		 	break;
+		/* Variable declarition*/
+		case AST_VAR:
+			ast_make_source(stream, tree->children[0]);
+			fprintf(stream, " : ");
+			ast_make_source(stream, tree->children[1]);
+			fprintf(stream, " ");
+			ast_make_source(stream, tree->children[2]);
+			break;
+
+		/* CONTROL TYPES*/
+		case AST_PROG:
+			ast_make_source(stream, tree->children[0]);
+			break;
+		case AST_DECL_LIST:
+			ast_make_source(stream, tree->children[0]);
+			ast_make_source(stream, tree->children[1]);
+			fprintf(stream, ";\n");
+			break;
+		default:
+			break;
+	}
+
 }

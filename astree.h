@@ -36,4 +36,6 @@ struct astree *ast_create(int type, struct hm_item *symbol,
 /* Pretty print a tree to a stream. */
 void ast_fprint(FILE *stream, int level, struct astree *tree);
 
+/* Recreate the program trought tree to a stream. */
+void ast_make_source(FILE* stream, struct astree* tree);
 #endif /* ifndef AST_H */

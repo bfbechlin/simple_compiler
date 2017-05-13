@@ -56,7 +56,7 @@ print	{return KW_PRINT;}
 '.'				{yylval.symbol = symtab_insert(yytext, SYMBOL_LIT_CHAR);return LIT_CHAR;}
 
  /* STRINGS */
-\"(\\.|[^\\"\n])*\" {symtab_insert(yytext, SYMBOL_LIT_STRING);return LIT_STRING;}
+\"(\\.|[^\\"\n])*\" {yylval.symbol = symtab_insert(yytext, SYMBOL_LIT_STRING);return LIT_STRING;}
 
  /* LINE COUNTER*/
 \n			{lineCounter++;}

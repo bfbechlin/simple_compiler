@@ -38,7 +38,22 @@ static const char *type_to_string[] = {
 	"float",
 	"double",
 	"decl_list",
-	"var"
+	"var",
+	"vec",
+	"vec_init",
+	"func",
+	"fheader",
+	"params",
+	"cmd_list",
+	"var_attr",
+	"vec_attr",
+	"read",
+	"print",
+	"print_list",
+	"return",
+	"vec_sub",
+	"call",
+	"args"
 };
 
 void ast_fprint(FILE *stream, int level, struct astree *tree) {

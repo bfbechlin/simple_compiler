@@ -18,6 +18,21 @@
 #define AST_KW_DOUBLE 10
 #define AST_DECL_LIST 11
 #define AST_VAR 12
+#define AST_VEC 13
+#define AST_VEC_INIT 14
+#define AST_FUNC 15
+#define AST_FHEADER 16
+#define AST_PARAMS 17
+#define AST_CMD_LIST 18
+#define AST_VAR_ATTR 19
+#define AST_VEC_ATTR 20
+#define AST_READ 21
+#define AST_PRINT 22
+#define AST_PRINT_LIST 23
+#define AST_RETURN 24
+#define AST_VEC_SUB 25
+#define AST_CALL 26
+#define AST_ARGS 27
 
 struct astree {
 	int type;

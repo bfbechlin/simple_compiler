@@ -28,7 +28,7 @@ void main(int argc, char* argv[]){
 	symtab_print();
 	ast_fprint(stdout, 0, program);
 	printf("SOURCE:\n");
-	ast_make_source(stdout, program);
+	//ast_make_source(stdout, program);
 	symtab_destroy();
 	exit(0);
 }

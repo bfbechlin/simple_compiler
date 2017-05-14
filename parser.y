@@ -46,7 +46,7 @@
 %token <symbol> LIT_STRING
 %token TOKEN_ERROR
 
-%type <tree> prog decl_list decl func type var lit ident vec vec_init fheader params_list params params_rest fbody block cmd_list cmd attr expr read print_arg print_list print return args args_rest args_list
+%type <tree> prog decl_list decl func type var lit ident vec vec_init fheader params_list params params_rest fbody block cmd_list cmd attr expr read print_arg print_list print return args args_rest args_list ctrl
 
 %start prog
 %left OP_EQ OP_LE OP_GE OP_NE '>' '<'
@@ -117,7 +117,7 @@ cmd_list: cmd_list cmd ';' { $$ = ast_create(AST_CMD_LIST, NULL, $1, $2, NULL, N
 /* single commands single */
 
 cmd: attr { $$ = $1; }
-   | ctrl { $$ = NULL; }
+   | ctrl { $$ = $1; }
    | read { $$ = $1; }
    | print { $$ = $1; }
    | return { $$ = $1; }
@@ -145,20 +145,20 @@ expr: ident { $$ = $1; }
     | LIT_CHAR { $$ = ast_create(AST_SYM, $1, NULL, NULL, NULL, NULL); }
     | LIT_REAL { $$ = ast_create(AST_SYM, $1, NULL, NULL, NULL, NULL); }
     | ident '(' args_list ')' { $$ = ast_create(AST_CALL, NULL, $1, $3, NULL, NULL); }
-    | '(' expr ')' { }
-    | expr '+' expr { }
-    | expr '-' expr { }
-    | expr '*' expr { }
-    | expr '/' expr { }
-    | expr '<' expr { }
-    | expr '>' expr { }
-    | '!' expr { }
-    | expr OP_LE expr { }
-    | expr OP_GE expr { }
-    | expr OP_EQ expr { }
-    | expr OP_NE expr { }
-    | expr OP_AND expr { }
-    | expr OP_OR expr { }
+    | '(' expr ')' { $$ = $2; }
+    | expr '+' expr { $$ = ast_create(AST_ADD, NULL, $1, $3, NULL, NULL); }
+    | expr '-' expr { $$ = ast_create(AST_SUB, NULL, $1, $3, NULL, NULL); }
+    | expr '*' expr { $$ = ast_create(AST_MUL, NULL, $1, $3, NULL, NULL);  }
+    | expr '/' expr { $$ = ast_create(AST_DIV, NULL, $1, $3, NULL, NULL);  }
+    | expr '<' expr { $$ = ast_create(AST_LT, NULL, $1, $3, NULL, NULL);  }
+    | expr '>' expr { $$ = ast_create(AST_GT, NULL, $1, $3, NULL, NULL);  }
+    | '!' expr { $$ = ast_create(AST_NOT, NULL, $2, NULL, NULL, NULL);  }
+    | expr OP_LE expr { $$ = ast_create(AST_LE, NULL, $1, $3, NULL, NULL);  }
+    | expr OP_GE expr { $$ = ast_create(AST_GE, NULL, $1, $3, NULL, NULL);  }
+    | expr OP_EQ expr { $$ = ast_create(AST_EQ, NULL, $1, $3, NULL, NULL);  }
+    | expr OP_NE expr { $$ = ast_create(AST_NE, NULL, $1, $3, NULL, NULL);  }
+    | expr OP_AND expr { $$ = ast_create(AST_AND, NULL, $1, $3, NULL, NULL);  }
+    | expr OP_OR expr { $$ = ast_create(AST_OR, NULL, $1, $3, NULL, NULL);  }
     ;
 
 args_list: args { $$ = $1; }
@@ -169,10 +169,10 @@ args_rest: args_rest expr ',' { $$ = ast_create(AST_ARGS, NULL, $1, $2, NULL, NU
 
 /* control */
 
-ctrl: KW_WHEN '(' expr ')' KW_THEN cmd { }
-    | KW_WHEN '(' expr ')' KW_THEN cmd KW_ELSE cmd { }
-    | KW_WHILE '(' expr ')' cmd { }
-    | KW_FOR '(' ident'=' expr KW_TO expr ')' cmd { }
+ctrl: KW_WHEN '(' expr ')' KW_THEN cmd { $$ = ast_create(AST_WHEN, NULL, $3, $6, NULL, NULL); }
+    | KW_WHEN '(' expr ')' KW_THEN cmd KW_ELSE cmd { $$ = ast_create(AST_WHEN_ELSE, NULL, $3, $6, $8, NULL);  }
+    | KW_WHILE '(' expr ')' cmd { $$ = ast_create(AST_WHILE, NULL, $3, $5, NULL, NULL);  }
+    | KW_FOR '(' ident'=' expr KW_TO expr ')' cmd { $$ = ast_create(AST_FOR, NULL, $3, $5, $7, $9);  }
     ;
 
 %%

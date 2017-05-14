@@ -33,6 +33,19 @@
 #define AST_VEC_SUB 25
 #define AST_CALL 26
 #define AST_ARGS 27
+#define AST_LT 28
+#define AST_GT 29
+#define AST_NOT 30
+#define AST_LE 31
+#define AST_GE 32
+#define AST_EQ 33
+#define AST_NE 34
+#define AST_AND 35
+#define AST_OR 36
+#define AST_WHEN 37
+#define AST_WHEN_ELSE 38
+#define AST_WHILE 39
+#define AST_FOR 40
 
 struct astree {
 	int type;
@@ -47,6 +60,9 @@ struct astree *ast_create(int type, struct hm_item *symbol,
 	struct astree *c1,
 	struct astree *c2,
 	struct astree *c3);
+
+/* Deallocate tree nodes. */
+void ast_terminate(struct astree *tree);
 
 /* Pretty print a tree to a stream. */
 void ast_fprint(FILE *stream, int level, struct astree *tree);

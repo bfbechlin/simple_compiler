@@ -25,7 +25,7 @@ long main()
 	a = (i + a + 1);
     };
   print "Incrementado algumas vezes fica " a "\n";
-  when (a==5) then
+  when (a==5 && b==10) then
     print "Parou no meio\n";
   when (a==11) then
     ;

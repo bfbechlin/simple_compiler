@@ -25,6 +25,19 @@ struct astree *ast_create(int type, struct hm_item *symbol,
 	return node;
 }
 
+void ast_terminate(struct astree *tree) {
+	if (!tree) {
+		return;
+	}
+
+	int i;
+	for (i = 0; i < AST_MAXCHILDREN; i++) {
+		ast_terminate(tree->children[i]);
+	}
+
+	free(tree);
+}
+
 static const char *type_to_string[] = {
 	"symbol",
 	"+",
@@ -53,7 +66,20 @@ static const char *type_to_string[] = {
 	"return",
 	"vec_sub",
 	"call",
-	"args"
+	"args",
+	"<",
+	">",
+	"!",
+	"<=",
+	">=",
+	"==",
+	"!=",
+	"&&",
+	"||",
+	"when",
+	"when_else",
+	"while",
+	"for"
 };
 
 void ast_fprint(FILE *stream, int level, struct astree *tree) {

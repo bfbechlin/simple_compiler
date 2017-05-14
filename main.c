@@ -30,5 +30,6 @@ void main(int argc, char* argv[]){
 	printf("SOURCE:\n");
 	//ast_make_source(stdout, program);
 	symtab_destroy();
+	ast_terminate(program);
 	exit(0);
 }

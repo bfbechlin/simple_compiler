@@ -47,6 +47,9 @@
 #define AST_WHILE 39
 #define AST_FOR 40
 
+#define AST_BLOCK 41
+#define AST_EXP_BLOCK 42
+
 struct astree {
 	int type;
 	struct hm_item *symbol;
@@ -68,5 +71,8 @@ void ast_terminate(struct astree *tree);
 void ast_fprint(FILE *stream, int level, struct astree *tree);
 
 /* Recreate the program trought tree to a stream. */
-void ast_make_source(FILE* stream, struct astree* tree);
+void ast_make_source(FILE* stream, struct astree* tree, int level);
+
+/* Internal function to help make source*/
+void print_identation(FILE* stream, int level);
 #endif /* ifndef AST_H */

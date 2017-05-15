@@ -79,7 +79,9 @@ static const char *type_to_string[] = {
 	"when",
 	"when_else",
 	"while",
-	"for"
+	"for",
+	"block",
+	"expr_block"
 };
 
 void ast_fprint(FILE *stream, int level, struct astree *tree) {
@@ -103,19 +105,25 @@ void ast_fprint(FILE *stream, int level, struct astree *tree) {
 	}
 }
 
-void ast_make_source(FILE* stream, struct astree* tree){
+void ast_make_source(FILE* stream, struct astree* tree, int level){
 	if (!tree)
 		return;
 
 	switch(tree->type){
+		/* Init program*/
+		case AST_PROG:
+			ast_make_source(stream, tree->children[0], level);
+			break;
+		/* Lists*/
+		case AST_CMD_LIST: case AST_DECL_LIST:
+			ast_make_source(stream, tree->children[0], level);
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, ";\n");
+			print_identation(stream, level);
+			break;
+		/* All types of symbols*/
 		case AST_SYM:
 			fprintf(stream, "%s", tree->symbol->key);
-			break;
-		/* Operators*/
-		case AST_ADD: case AST_SUB: case AST_MUL: case AST_DIV:
-			ast_make_source(stream, tree->children[0]);
-			fprintf(stream, "%s", type_to_string[tree->type]);
-			ast_make_source(stream, tree->children[1]);
 			break;
 		/* Types*/
 		case AST_KW_BYTE: case AST_KW_SHORT: case AST_KW_LONG:
@@ -124,24 +132,178 @@ void ast_make_source(FILE* stream, struct astree* tree){
 		 	break;
 		/* Variable declarition*/
 		case AST_VAR:
-			ast_make_source(stream, tree->children[0]);
+			ast_make_source(stream, tree->children[0], level);
 			fprintf(stream, " : ");
-			ast_make_source(stream, tree->children[1]);
+			ast_make_source(stream, tree->children[1], level);
 			fprintf(stream, " ");
-			ast_make_source(stream, tree->children[2]);
+			ast_make_source(stream, tree->children[2], level);
+			break;
+		/* Vector declarition*/
+		case AST_VEC:
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, " : ");
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, " [");
+			ast_make_source(stream, tree->children[2], level);
+			fprintf(stream, "]");
+			ast_make_source(stream, tree->children[3], level);
+			break;
+		/* Vector inicialization*/
+		case AST_VEC_INIT:
+			fprintf(stream, " ");
+			ast_make_source(stream, tree->children[1], level);
+			ast_make_source(stream, tree->children[0], level);
+			break;
+		/* Function declarition*/
+		case AST_FUNC:
+			ast_make_source(stream, tree->children[0], level);
+			ast_make_source(stream, tree->children[1], level);
+			break;
+		/* Function Header declarition*/
+		case AST_FHEADER:
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, " ");
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, "(");
+			ast_make_source(stream, tree->children[2], level);
+			fprintf(stream, ")\n");
+			break;
+		/* Parameters*/
+		case AST_PARAMS:
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, " ");
+			ast_make_source(stream, tree->children[2], level);
+			if(tree->children[0] != NULL)
+				fprintf(stream, ", ");
+			ast_make_source(stream, tree->children[0], level);
+			break;
+		/* Block of commands*/
+		case AST_BLOCK:
+			fprintf(stream, "{\n");
+			print_identation(stream, level + 1);
+			ast_make_source(stream, tree->children[0], level+1);
+			fprintf(stream, "\r");
+			print_identation(stream, level);
+			fprintf(stream, "}\n");
+			break;
+		/* Attribution command*/
+		case AST_VAR_ATTR:
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, " = ");
+			ast_make_source(stream, tree->children[1], level);
+			break;
+		/* Attribution command*/
+		case AST_VEC_ATTR:
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, "#");
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, " = ");
+			ast_make_source(stream, tree->children[2], level);
+			break;
+		/* Read command*/
+		case AST_READ:
+			fprintf(stream, "%s ", type_to_string[tree->type]);
+			ast_make_source(stream, tree->children[0], level);
+			break;
+		/* Print command*/
+		case AST_PRINT:
+			fprintf(stream, "%s ", type_to_string[tree->type]);
+			ast_make_source(stream, tree->children[0], level);
+			break;
+		case AST_PRINT_LIST:
+			ast_make_source(stream, tree->children[0], level);
+			ast_make_source(stream, tree->children[1], level);
+			//if(tree->children[0] != NULL)
+				fprintf(stream, " ");
+			break;
+		/* Return statement*/
+		case AST_RETURN:
+			fprintf(stream, "%s ", type_to_string[tree->type]);
+			ast_make_source(stream, tree->children[0], level);
 			break;
 
-		/* CONTROL TYPES*/
-		case AST_PROG:
-			ast_make_source(stream, tree->children[0]);
+		/* Expressions*/
+		/* Unary operatiors*/
+		case AST_NOT:
+			fprintf(stream, "%s ", type_to_string[tree->type]);
+			ast_make_source(stream, tree->children[0], level);
 			break;
-		case AST_DECL_LIST:
-			ast_make_source(stream, tree->children[0]);
-			ast_make_source(stream, tree->children[1]);
-			fprintf(stream, ";\n");
+		/* Operators*/
+		case AST_ADD: case AST_SUB: case AST_MUL: case AST_DIV:
+		case AST_LT: case AST_GT: case AST_LE: case AST_GE:
+		case AST_EQ: case AST_NE: case AST_AND: case AST_OR:
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, " %s ", type_to_string[tree->type]);
+			ast_make_source(stream, tree->children[1], level);
 			break;
+		/* Call operatior*/
+		case AST_CALL:
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, "(");
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, ")");
+			break;
+		/* Vector as expression*/
+		case AST_VEC_SUB:
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, "[");
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, "]");
+			break;
+		case AST_EXP_BLOCK:
+			fprintf(stream, "(");
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, ")");
+			break;
+
+		/* Arguments*/
+		case AST_ARGS:
+			ast_make_source(stream, tree->children[0], level);
+			ast_make_source(stream, tree->children[1], level);
+			if(tree->children[0] != NULL)
+				fprintf(stream, ", ");
+
+		/* Control statements*/
+		case AST_WHEN:
+			fprintf(stream, "when (");
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, ") then ");
+			ast_make_source(stream, tree->children[1], level);
+			break;
+		case AST_WHEN_ELSE:
+			fprintf(stream, "when (");
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, ") then ");
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, "\n");
+			print_identation(stream, level);
+			fprintf(stream, "else");
+			ast_make_source(stream, tree->children[2], level);
+			break;
+		case AST_WHILE:
+			fprintf(stream, "while (");
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, ")\n");
+			print_identation(stream, level);
+			break;
+		case AST_FOR:
+			fprintf(stream, "for (");
+			ast_make_source(stream, tree->children[0], level);
+			fprintf(stream, " = ");
+			ast_make_source(stream, tree->children[1], level);
+			fprintf(stream, " to ");
+			ast_make_source(stream, tree->children[2], level);
+			fprintf(stream, ")\n");
+			print_identation(stream, level);
+			break;
+
 		default:
 			break;
 	}
+}
 
+void print_identation(FILE* stream, int level){
+	int i;
+	for(i = 0; i < level; i++)
+		fprintf(stream, "  ");
 }

@@ -110,7 +110,7 @@ fbody: cmd { $$ = $1; } ;
 
 /* command block */
 
-block: '{' cmd_list '}' { $$ = $2; } ;
+block: '{' cmd_list '}' { $$ = ast_create(AST_BLOCK, NULL, $2, NULL, NULL, NULL);} ;
 cmd_list: cmd_list cmd ';' { $$ = ast_create(AST_CMD_LIST, NULL, $1, $2, NULL, NULL); }
 		| { $$ = NULL; } ;
 
@@ -145,7 +145,7 @@ expr: ident { $$ = $1; }
     | LIT_CHAR { $$ = ast_create(AST_SYM, $1, NULL, NULL, NULL, NULL); }
     | LIT_REAL { $$ = ast_create(AST_SYM, $1, NULL, NULL, NULL, NULL); }
     | ident '(' args_list ')' { $$ = ast_create(AST_CALL, NULL, $1, $3, NULL, NULL); }
-    | '(' expr ')' { $$ = $2; }
+    | '(' expr ')' { $$ = ast_create(AST_EXP_BLOCK, NULL, $2, NULL, NULL, NULL); }
     | expr '+' expr { $$ = ast_create(AST_ADD, NULL, $1, $3, NULL, NULL); }
     | expr '-' expr { $$ = ast_create(AST_SUB, NULL, $1, $3, NULL, NULL); }
     | expr '*' expr { $$ = ast_create(AST_MUL, NULL, $1, $3, NULL, NULL);  }

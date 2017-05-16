@@ -150,9 +150,9 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			break;
 		/* Vector inicialization*/
 		case AST_VEC_INIT:
+			ast_make_source(stream, tree->children[0], level);
 			fprintf(stream, " ");
 			ast_make_source(stream, tree->children[1], level);
-			ast_make_source(stream, tree->children[0], level);
 			break;
 		/* Function declarition*/
 		case AST_FUNC:

@@ -170,12 +170,13 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			break;
 		/* Parameters*/
 		case AST_PARAMS:
+			if(tree->children[0] != NULL) {
+				ast_make_source(stream, tree->children[0], level);
+				fprintf(stream, ", ");
+			}
 			ast_make_source(stream, tree->children[1], level);
 			fprintf(stream, " ");
 			ast_make_source(stream, tree->children[2], level);
-			if(tree->children[0] != NULL)
-				fprintf(stream, ", ");
-			ast_make_source(stream, tree->children[0], level);
 			break;
 		/* Block of commands*/
 		case AST_BLOCK:

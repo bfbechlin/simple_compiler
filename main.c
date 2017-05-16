@@ -10,12 +10,24 @@ extern struct astree *program;
 
 void main(int argc, char* argv[]){
 	int i;
+	FILE *out = stdout;
 	symtab_init();
-	if(argc > 2){
+	if(argc > 3){
 		fprintf(stderr,
 			"ERRO:\n\t Arguments not suported.\nUSAGE:\
-			\n\t [input file name]: name of file to be analysed.\n");
+			\n\t [input file name]: name of file to be analysed.\
+			\n\t [output file name]: name of file to write source code.\n");
 		exit(1);
+	}
+	if(argc > 2) {
+		if(!set_input_file(argv[1])){
+			fprintf(stderr, "ERRO:\n\t File [%s] not found.\n", argv[1]);
+			exit(2);
+		}
+		if(!(out = fopen(argv[2], "w"))){
+			fprintf(stderr, "ERRO:\n\t File [%s] can't to be open.\n", argv[2]);
+			exit(2);
+		}
 	}
 	if(argc > 1) {
 		if(!set_input_file(argv[1])){
@@ -28,7 +40,7 @@ void main(int argc, char* argv[]){
 	symtab_print();
 	ast_fprint(stdout, 0, program);
 	printf("SOURCE:\n");
-	ast_make_source(stdout, program, 0);
+	ast_make_source(out, program, 0);
 	symtab_destroy();
 	ast_terminate(program);
 	exit(0);

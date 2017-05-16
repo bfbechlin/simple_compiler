@@ -71,7 +71,7 @@ print	{return KW_PRINT;}
 <comment>"*/"	BEGIN(INITIAL);
 
  /* SPACES AND TABS*/
-[ \t]		{}
+[ \t\r]		{}
  /* ERROR*/
 .			{return TOKEN_ERROR;}
 %%

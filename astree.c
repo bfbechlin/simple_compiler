@@ -106,7 +106,7 @@ void ast_fprint(FILE *stream, int level, struct astree *tree) {
 }
 
 void ast_make_source(FILE* stream, struct astree* tree, int level){
-	if (!tree)
+	if (tree == NULL)
 		return;
 
 	switch(tree->type){
@@ -259,9 +259,10 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 		/* Arguments*/
 		case AST_ARGS:
 			ast_make_source(stream, tree->children[0], level);
-			ast_make_source(stream, tree->children[1], level);
 			if(tree->children[0] != NULL)
 				fprintf(stream, ", ");
+			ast_make_source(stream, tree->children[1], level);
+			break;
 
 		/* Control statements*/
 		case AST_WHEN:
@@ -285,6 +286,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			ast_make_source(stream, tree->children[0], level);
 			fprintf(stream, ")\n");
 			print_identation(stream, level);
+			ast_make_source(stream, tree->children[1], level);
 			break;
 		case AST_FOR:
 			fprintf(stream, "for (");
@@ -295,6 +297,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			ast_make_source(stream, tree->children[2], level);
 			fprintf(stream, ")\n");
 			print_identation(stream, level);
+			ast_make_source(stream, tree->children[3], level);
 			break;
 
 		default:

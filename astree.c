@@ -283,7 +283,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			ast_make_source(stream, tree->children[0], level);
 			fprintf(stream, ") then\n");
 			if(tree->children[1] == NULL)
-				print_identation(stream, level);
+				print_identation(stream, level + 1);
 			else if(tree->children[1]->type == AST_BLOCK)
 				ast_make_source(stream, tree->children[1], level);
 			else
@@ -294,7 +294,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			ast_make_source(stream, tree->children[0], level);
 			fprintf(stream, ") then\n");
 			if(tree->children[1] == NULL)
-				print_identation(stream, level);
+				print_identation(stream, level + 1);
 			else if(tree->children[1]->type == AST_BLOCK)
 				ast_make_source(stream, tree->children[1], level);
 			else
@@ -303,7 +303,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			print_identation(stream, level);
 			fprintf(stream, "else\n");
 			if(tree->children[2] == NULL)
-				print_identation(stream, level);
+				print_identation(stream, level + 1);
 			else if(tree->children[2]->type == AST_BLOCK)
 				ast_make_source(stream, tree->children[2], level);
 			else
@@ -314,7 +314,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			ast_make_source(stream, tree->children[0], level);
 			fprintf(stream, ")\n");
 			if(tree->children[1] == NULL)
-				print_identation(stream, level);
+				print_identation(stream, level + 1);
 			else if(tree->children[1]->type == AST_BLOCK)
 				ast_make_source(stream, tree->children[1], level);
 			else
@@ -329,7 +329,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			ast_make_source(stream, tree->children[2], level);
 			fprintf(stream, ")\n");
 			if(tree->children[3] == NULL)
-				print_identation(stream, level);
+				print_identation(stream, level + 1);
 			else if(tree->children[3]->type == AST_BLOCK)
 				ast_make_source(stream, tree->children[3], level);
 			else

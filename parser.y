@@ -49,8 +49,8 @@
 %type <tree> prog decl_list decl func type var lit ident vec vec_init fheader params_list params params_rest fbody block cmd_list cmd attr expr read print_arg print_list print return args args_rest args_list ctrl
 
 %start prog
-%left OP_EQ OP_LE OP_GE OP_NE '>' '<'
 %left OP_AND OP_OR '!'
+%left OP_EQ OP_LE OP_GE OP_NE '>' '<'
 %left '+' '-'
 %left '*' '/'
 

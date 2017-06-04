@@ -37,10 +37,12 @@ void main(int argc, char* argv[]){
 	}
 	yyparse();
 	printf("SUCESS:\n\t Program was accepted.\n");
+	ast_annotate(program);
 	symtab_print();
-	ast_fprint(stdout, 0, program);
 	printf("SOURCE:\n");
 	ast_make_source(out, program, 0);
+	ast_fprint(stdout, 0, program);
+
 	symtab_destroy();
 	ast_terminate(program);
 	exit(0);

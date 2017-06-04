@@ -75,4 +75,8 @@ void ast_make_source(FILE* stream, struct astree* tree, int level);
 
 /* Internal function to help make source*/
 void print_identation(FILE* stream, int level);
+
+/* Traverses the tree annotating the type of the symbols in the symbol table.
+ * Annotates `data_type` for all symbols and `id_type` for identifiers. */
+void ast_annotate(struct astree* tree);
 #endif /* ifndef AST_H */

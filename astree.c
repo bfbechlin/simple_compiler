@@ -1,4 +1,5 @@
 #include "astree.h"
+#include "symbol_table.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -96,7 +97,8 @@ void ast_fprint(FILE *stream, int level, struct astree *tree) {
 
 	fprintf(stream, "%s", type_to_string[tree->type]);
 	if (tree->type == AST_SYM) {
-		fprintf(stream, ": %s", tree->symbol->key);
+		fprintf(stream, ": %s, ", tree->symbol->key);
+		symtab_fprint_item(stream, tree->symbol->value);
 	}
 	fprintf(stream, "\n");
 
@@ -345,4 +347,111 @@ void print_identation(FILE* stream, int level){
 	int i;
 	for(i = 0; i < level; i++)
 		fprintf(stream, "  ");
+}
+
+/* Annotate symbol table when tree is a declaration (i.e., of type AST_VAR,
+ * AST_VEC or AST_FHEADER). */
+static void annotate_identifier(struct astree *tree) {
+	struct astree *id_node;
+	struct astree *type_node;
+	switch (tree->type) {
+		case AST_VAR:
+			id_node = tree->children[0];
+			type_node = tree->children[1];
+			break;
+		case AST_VEC:
+			id_node = tree->children[0];
+			type_node = tree->children[1];
+			ast_annotate(tree->children[2]);
+			ast_annotate(tree->children[3]);
+			break;
+		case AST_FHEADER:
+			id_node = tree->children[1];
+			type_node = tree->children[0];
+
+			/* TODO: Since here tree->children[2]->children[2] is a list of parameters,
+			 * we might have to create a new scope for those variables declared here.
+			 * Right now, this accomplishes nothing, since this node is of type
+			 * AST_IDENTIFIER. Test program with the argument of `tests/fun_dec.txt`
+			 * to see. */
+			ast_annotate(tree->children[2]);
+			break;
+	}
+
+	struct symtab_item *item = id_node->symbol->value;
+	switch (tree->type) {
+		case AST_VAR:
+			item->id_type = ID_VAR;
+			break;
+		case AST_VEC:
+			item->id_type = ID_VEC;
+			break;
+		case AST_FHEADER:
+			item->id_type = ID_FUN;
+			break;
+	}
+
+	switch (type_node->type) {
+		case AST_KW_BYTE:
+			item->data_type = TP_BYTE;
+			break;
+		case AST_KW_SHORT:
+			item->data_type = TP_SHORT;
+			break;
+		case AST_KW_LONG:
+			item->data_type = TP_LONG;
+			break;
+		case AST_KW_FLOAT:
+			item->data_type = TP_FLOAT;
+			break;
+		case AST_KW_DOUBLE:
+			item->data_type = TP_DOUBLE;
+			break;
+	}
+}
+
+/* Annotate symbol table when tree is a literal or an id (i.e., of
+ * type AST_SYM) */
+static void annotate_symbol(struct astree *tree) {
+	struct symtab_item *item = tree->symbol->value;
+	switch (item->code) {
+		case SYMBOL_LIT_INT:
+			item->data_type = TP_LONG;
+			break;
+		case SYMBOL_LIT_REAL:
+			item->data_type = TP_DOUBLE;
+			break;
+		case SYMBOL_LIT_CHAR:
+			item->data_type = TP_BYTE;
+			break;
+		case SYMBOL_LIT_STRING:
+			break;
+		case SYMBOL_IDENTIFIER:
+			break;
+	}
+}
+
+void ast_annotate(struct astree* tree) {
+	if (tree == NULL) {
+		return;
+	}
+
+	/* Annotating children before the root seems more intuitive, but I don't think
+	 * it makes any difference. */
+	for (int i = 0; i < AST_MAXCHILDREN; i++) {
+		ast_annotate(tree->children[i]);
+	}
+
+	int node_type = tree->type;
+	int sym = node_type == AST_SYM;
+	int decl = (node_type == AST_VAR)
+	        || (node_type == AST_VEC)
+	        || (node_type == AST_FHEADER);
+
+	if (sym) {
+		annotate_symbol(tree);
+	} else if (decl) {
+		annotate_identifier(tree);
+	}
+
 }

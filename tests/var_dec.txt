@@ -1,0 +1,2 @@
+a: short 0;
+b: short 1;

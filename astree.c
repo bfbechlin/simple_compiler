@@ -349,9 +349,16 @@ void print_identation(FILE* stream, int level){
 		fprintf(stream, "  ");
 }
 
+static void ast_annotate(struct astree* tree, struct hashmap *declared_variables);
+
+/* `yes` is a dummy variable. Our hashmap implementation is being used here as
+ * a hashset. I.e., we only care about the keys. So `yes` is just a constant
+ * with no meaning to be put in the value field. */
+static char yes = 1;
+
 /* Annotate symbol table when tree is a declaration (i.e., of type AST_VAR,
  * AST_VEC or AST_FHEADER). */
-static void annotate_identifier(struct astree *tree) {
+static void annotate_declaration(struct astree *tree, struct hashmap *declared_variables) {
 	struct astree *id_node;
 	struct astree *type_node;
 	switch (tree->type) {
@@ -362,8 +369,8 @@ static void annotate_identifier(struct astree *tree) {
 		case AST_VEC:
 			id_node = tree->children[0];
 			type_node = tree->children[1];
-			ast_annotate(tree->children[2]);
-			ast_annotate(tree->children[3]);
+			ast_annotate(tree->children[2], declared_variables);
+			ast_annotate(tree->children[3], declared_variables);
 			break;
 		case AST_FHEADER:
 			id_node = tree->children[1];
@@ -374,9 +381,16 @@ static void annotate_identifier(struct astree *tree) {
 			 * Right now, this accomplishes nothing, since this node is of type
 			 * AST_IDENTIFIER. Test program with the argument of `tests/fun_dec.txt`
 			 * to see. */
-			ast_annotate(tree->children[2]);
+			ast_annotate(tree->children[2], declared_variables);
 			break;
 	}
+
+	/* check redeclarations */
+	if (hm_getref(declared_variables, id_node->symbol->key) != NULL) {
+		fprintf(stderr, "Redeclaration: %s\n", id_node->symbol->key);
+		exit(4);
+	}
+	hm_put(declared_variables, id_node->symbol->key, &yes);
 
 	struct symtab_item *item = id_node->symbol->value;
 	switch (tree->type) {
@@ -431,7 +445,19 @@ static void annotate_symbol(struct astree *tree) {
 	}
 }
 
-void ast_annotate(struct astree* tree) {
+void ast_semantic_check(struct astree *tree) {
+	struct hashmap declared_variables;
+	hm_initialize(20, 0.6, sizeof(char), &declared_variables);
+
+	ast_annotate(tree, &declared_variables);
+	hm_fprint(stderr, &declared_variables, 0);
+
+	hm_terminate(&declared_variables);
+}
+
+/* Traverses the tree annotating the type of the symbols in the symbol table.
+ * Annotates `data_type` for all symbols and `id_type` for identifiers. */
+static void ast_annotate(struct astree* tree, struct hashmap *declared_variables) {
 	if (tree == NULL) {
 		return;
 	}
@@ -439,7 +465,7 @@ void ast_annotate(struct astree* tree) {
 	/* Annotating children before the root seems more intuitive, but I don't think
 	 * it makes any difference. */
 	for (int i = 0; i < AST_MAXCHILDREN; i++) {
-		ast_annotate(tree->children[i]);
+		ast_annotate(tree->children[i], declared_variables);
 	}
 
 	int node_type = tree->type;
@@ -451,7 +477,6 @@ void ast_annotate(struct astree* tree) {
 	if (sym) {
 		annotate_symbol(tree);
 	} else if (decl) {
-		annotate_identifier(tree);
+		annotate_declaration(tree, declared_variables);
 	}
-
 }

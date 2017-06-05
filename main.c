@@ -37,7 +37,7 @@ void main(int argc, char* argv[]){
 	}
 	yyparse();
 	printf("SUCESS:\n\t Program was accepted.\n");
-	ast_annotate(program);
+	ast_semantic_check(program);
 	symtab_print();
 	printf("SOURCE:\n");
 	ast_make_source(out, program, 0);

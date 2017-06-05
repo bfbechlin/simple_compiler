@@ -3,7 +3,7 @@
 	#include "symbol_table.h"
 	#include "parser.h"
 
-	int set_input_file(char* file_name);
+	FILE *set_input_file(char* file_name);
 
 	int getLineNumber(void);
 	int isRunning(void);
@@ -83,10 +83,10 @@ int yywrap(void){
 	return 1;
 }
 
-int set_input_file(char* file_name){
+FILE *set_input_file(char* file_name){
 	if(yyin = fopen(file_name, "r"))
-		return 1;
-	return 0;
+		return yyin;
+	return NULL;
 }
 
 int getLineNumber(void){

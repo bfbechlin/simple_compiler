@@ -349,7 +349,7 @@ void print_identation(FILE* stream, int level){
 		fprintf(stream, "  ");
 }
 
-static void ast_annotate(struct astree* tree, struct hashmap *declared_variables);
+static void first_pass(struct astree* tree, struct hashmap *declared_variables);
 
 /* `yes` is a dummy variable. Our hashmap implementation is being used here as
  * a hashset. I.e., we only care about the keys. So `yes` is just a constant
@@ -369,8 +369,8 @@ static void annotate_declaration(struct astree *tree, struct hashmap *declared_v
 		case AST_VEC:
 			id_node = tree->children[0];
 			type_node = tree->children[1];
-			ast_annotate(tree->children[2], declared_variables);
-			ast_annotate(tree->children[3], declared_variables);
+			first_pass(tree->children[2], declared_variables);
+			first_pass(tree->children[3], declared_variables);
 			break;
 		case AST_FHEADER:
 			id_node = tree->children[1];
@@ -381,7 +381,7 @@ static void annotate_declaration(struct astree *tree, struct hashmap *declared_v
 			 * Right now, this accomplishes nothing, since this node is of type
 			 * AST_IDENTIFIER. Test program with the argument of `tests/fun_dec.txt`
 			 * to see. */
-			ast_annotate(tree->children[2], declared_variables);
+			first_pass(tree->children[2], declared_variables);
 			break;
 	}
 
@@ -449,15 +449,16 @@ void ast_semantic_check(struct astree *tree) {
 	struct hashmap declared_variables;
 	hm_initialize(20, 0.6, sizeof(char), &declared_variables);
 
-	ast_annotate(tree, &declared_variables);
-	hm_fprint(stderr, &declared_variables, 0);
+	first_pass(tree, &declared_variables);
 
 	hm_terminate(&declared_variables);
 }
 
-/* Traverses the tree annotating the type of the symbols in the symbol table.
- * Annotates `data_type` for all symbols and `id_type` for identifiers. */
-static void ast_annotate(struct astree* tree, struct hashmap *declared_variables) {
+/* Traverses tree annotating:
+ * 1. Redeclarations
+ * 2. data_type in symbol table
+ * 3. id_type in symbol table */
+static void first_pass(struct astree *tree, struct hashmap *declared_variables) {
 	if (tree == NULL) {
 		return;
 	}
@@ -465,18 +466,17 @@ static void ast_annotate(struct astree* tree, struct hashmap *declared_variables
 	/* Annotating children before the root seems more intuitive, but I don't think
 	 * it makes any difference. */
 	for (int i = 0; i < AST_MAXCHILDREN; i++) {
-		ast_annotate(tree->children[i], declared_variables);
+		first_pass(tree->children[i], declared_variables);
 	}
 
-	int node_type = tree->type;
-	int sym = node_type == AST_SYM;
-	int decl = (node_type == AST_VAR)
-	        || (node_type == AST_VEC)
-	        || (node_type == AST_FHEADER);
-
-	if (sym) {
-		annotate_symbol(tree);
-	} else if (decl) {
-		annotate_declaration(tree, declared_variables);
+	switch (tree->type) {
+		case AST_SYM:
+			annotate_symbol(tree);
+			break;
+		case AST_VAR:
+		case AST_VEC:
+		case AST_FHEADER:
+			annotate_declaration(tree, declared_variables);
+			break;
 	}
 }

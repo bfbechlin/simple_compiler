@@ -21,7 +21,6 @@ struct hm_item *symtab_insert(char* symbol, int code){
 }
 
 void symtab_print(void){
-	printf("\nSYMBOLS TABLE:\n");
 	hm_fprint(stdout, &hash, 0);
 }
 

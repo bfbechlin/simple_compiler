@@ -1,7 +1,8 @@
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
-#include "hashmap.h" /* hm_item */
+#include "hashmap.h" /* struct hm_item */
+#include "astree.h" /* struct astree */
 
 #define SYMBOL_LIT_INT		1
 #define SYMBOL_LIT_REAL		2
@@ -41,7 +42,7 @@ struct symtab_item {
 	int code;
 	int data_type;
 	int id_type;
-	struct hm_item *decl;
+	struct astree *decl;
 };
 
 void symtab_init(void);

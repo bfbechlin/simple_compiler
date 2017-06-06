@@ -1,0 +1,5 @@
+a: short 0;
+long main()
+  {
+  b = 10;
+  };

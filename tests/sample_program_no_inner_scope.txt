@@ -21,8 +21,7 @@ long main()
   read i;
   while (i<10)
     {
-
-    a = incn(a,1);
+	a = voidfunc();
     i = i + 1;
 	a = (i + a + 1);
     };
@@ -37,8 +36,5 @@ long main()
   {;};
   {};
   };
-
-long incn (long x, long n)
-  return x+n;
 
 short voidfunc() ;

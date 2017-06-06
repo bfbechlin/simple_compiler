@@ -350,6 +350,7 @@ void print_identation(FILE* stream, int level){
 }
 
 static void first_pass(struct astree* tree, struct hashmap *declared_variables);
+static void second_pass(struct astree *tree, struct hashmap *declared_variables);
 
 /* `yes` is a dummy variable. Our hashmap implementation is being used here as
  * a hashset. I.e., we only care about the keys. So `yes` is just a constant
@@ -450,12 +451,13 @@ void ast_semantic_check(struct astree *tree) {
 	hm_initialize(20, 0.6, sizeof(char), &declared_variables);
 
 	first_pass(tree, &declared_variables);
+	second_pass(tree, &declared_variables);
 
 	hm_terminate(&declared_variables);
 }
 
-/* Traverses tree annotating:
- * 1. Redeclarations
+/* Traverses tree checking:
+ * 1. redeclarations
  * 2. data_type in symbol table
  * 3. id_type in symbol table */
 static void first_pass(struct astree *tree, struct hashmap *declared_variables) {
@@ -477,6 +479,43 @@ static void first_pass(struct astree *tree, struct hashmap *declared_variables) 
 		case AST_VEC:
 		case AST_FHEADER:
 			annotate_declaration(tree, declared_variables);
+			break;
+	}
+}
+
+static void check_if_declared(struct astree *tree, struct hashmap *declared_variables) {
+	char *id = tree->symbol->key;
+	if (hm_getref(declared_variables, id) == NULL) {
+		fprintf(stderr, "%s not declared\n", id);
+		exit(4);
+	}
+}
+
+/* Traverses tree checking if:
+ * 1. variables used are declared
+ * 2. TODO: variables are used correctly according to their id_type
+ * 3. TODO: variables are used correctly according to their data_type
+ * 4. TODO: functions return the data type they were declared with
+ * 5. TODO: funcion calls have the correct type of arguments
+ * 6. TODO: vectors indexing is done using integers */
+static void second_pass(struct astree *tree, struct hashmap *declared_variables) {
+	if (tree == NULL) {
+		return;
+	}
+
+	/* Annotating children before the root seems more intuitive, but I don't think
+	 * it makes any difference. */
+	for (int i = 0; i < AST_MAXCHILDREN; i++) {
+		second_pass(tree->children[i], declared_variables);
+	}
+
+	switch (tree->type) {
+		case AST_SYM:
+			; /* <-- Empty statement on purpose. Remove and run to see why. */
+			char is_id = ((struct symtab_item *)tree->symbol->value)->code == SYMBOL_IDENTIFIER;
+			if (is_id) {
+				check_if_declared(tree, declared_variables);
+			}
 			break;
 	}
 }

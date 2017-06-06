@@ -509,13 +509,48 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 		second_pass(tree->children[i], declared_variables);
 	}
 
-	switch (tree->type) {
-		case AST_SYM:
-			; /* <-- Empty statement on purpose. Remove and run to see why. */
-			char is_id = ((struct symtab_item *)tree->symbol->value)->code == SYMBOL_IDENTIFIER;
-			if (is_id) {
-				check_if_declared(tree, declared_variables);
-			}
-			break;
+	/* it's a symbol and it's an identifier */
+	if ((tree->type == AST_SYM) &&
+	    (((struct symtab_item *)tree->symbol->value)->code == SYMBOL_IDENTIFIER)) {
+		check_if_declared(tree, declared_variables);
+	}
+
+	if (   (tree->type == AST_ADD)
+		|| (tree->type == AST_SUB)
+		|| (tree->type == AST_MUL)
+		|| (tree->type == AST_DIV)
+		|| (tree->type == AST_LT)
+		|| (tree->type == AST_GT)
+		|| (tree->type == AST_LE)
+		|| (tree->type == AST_GE)
+		|| (tree->type == AST_EQ)
+		|| (tree->type == AST_NE)) {
+		/* TODO: check if tree->children[0] and tree->children[1] are numeric */
+	}
+
+	if (tree->type == AST_CALL) {
+		/* TODO: check if tree->children[0] is a function identifier */
+		/* TODO: check if tree->children[1] is compatible with the function declaration */
+	}
+
+	if (tree->type == AST_VEC_SUB) {
+		/* TODO: check if tree->children[0] is a vector identifier */
+	}
+
+	if (tree->type == AST_VEC_ATTR) {
+		/* TODO: check if tree->children[0] is a vector identifier */
+		/* TODO: check if tree->children[1] is an integer */
+		/* TODO: check if tree->children[2] has the same type as the vector */
+	}
+
+	if (tree->type == AST_VAR_ATTR) {
+		/* TODO: check if tree->children[0] is a variable identifier */
+		/* TODO: check if tree->children[1] has the same type as the varible */
+	}
+
+	if (tree->type == AST_FUNC) {
+		/* TODO: check if tree->children[1] has as a return statement compatible
+		 * with tree->children[0]->children[0] type. That is, the return
+		 * statement has a type equal to the function identifier's data_type */
 	}
 }

@@ -528,6 +528,18 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 		/* TODO: check if tree->children[0] and tree->children[1] are numeric */
 	}
 
+	if (   (tree->type == AST_WHEN)
+	    || (tree->type == AST_WHEN_ELSE)
+		|| (tree->type == AST_WHILE)) {
+		/* TODO: check if tree->children[0] is a boolean */
+	}
+
+	if (tree->type == AST_FOR) {
+		/* TODO: check if tree->children[1] and tree->children[2] are numeric */
+		/* TODO: check if tree->children[0] is a varible compatible with
+		 * tree->children[1] and tree->children[2] */
+	}
+
 	if (tree->type == AST_CALL) {
 		/* TODO: check if tree->children[0] is a function identifier */
 		/* TODO: check if tree->children[1] is compatible with the function declaration */

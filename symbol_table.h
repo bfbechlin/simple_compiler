@@ -10,15 +10,23 @@
 #define SYMBOL_LIT_STRING	4
 #define SYMBOL_IDENTIFIER	5
 
-#define ID_VAR 1;
-#define ID_VEC 2;
-#define ID_FUN 3;
+#define ID_VAR 1
+#define ID_VEC 2
+#define ID_FUN 3
 
-#define TP_BYTE 1;
-#define TP_SHORT 2;
-#define TP_LONG 3;
-#define TP_FLOAT 4;
-#define TP_DOUBLE 5;
+
+#define TP_DOUBLE 1
+#define TP_FLOAT 3
+#define TP_LONG 5
+#define TP_SHORT 15
+#define TP_BYTE 31
+#define TP_BOOLEAN 32
+
+/* Test masks compatibility*/
+#define TP_ALL ~(0)
+#define TP_INCOMP 0
+#define TP_INTEGER 5
+#define TP_FLOATING 1
 
 /**
  * Symbols are:
@@ -46,7 +54,8 @@ struct symtab_item {
 };
 
 void symtab_init(void);
-struct hm_item *symtab_insert(char* symbol, int code);
+struct hm_item *symtab_insert(const char* symbol, int code);
+int symtab_get(const char* symbol, struct symtab_item* dummy);
 void symtab_print(void);
 void symtab_fprint_item(FILE *stream, struct symtab_item *item);
 void symtab_destroy(void);

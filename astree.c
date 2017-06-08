@@ -3,6 +3,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/*REMOVE!!!*/
+static const char *data_type_to_string[] = {
+	"", "double", "", "float", "", "long", "", "",
+	"", "", "", "", "", "", "", "short",
+	"", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "byte",
+	"boolean"
+};
+
 struct astree *ast_create(int type, struct hm_item *symbol,
 	struct astree *c0,
 	struct astree *c1,
@@ -105,6 +114,12 @@ void ast_fprint(FILE *stream, int level, struct astree *tree) {
 	for (i = 0; i < AST_MAXCHILDREN; i++) {
 		ast_fprint(stream, level + 1, tree->children[i]);
 	}
+}
+
+static void print_identation(FILE* stream, int level){
+	int i;
+	for(i = 0; i < level; i++)
+		fprintf(stream, "  ");
 }
 
 void ast_make_source(FILE* stream, struct astree* tree, int level){
@@ -343,12 +358,6 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 	}
 }
 
-void print_identation(FILE* stream, int level){
-	int i;
-	for(i = 0; i < level; i++)
-		fprintf(stream, "  ");
-}
-
 static void first_pass(struct astree* tree, struct hashmap *declared_variables);
 static void second_pass(struct astree *tree, struct hashmap *declared_variables);
 
@@ -370,19 +379,18 @@ static void annotate_declaration(struct astree *tree, struct hashmap *declared_v
 		case AST_VEC:
 			id_node = tree->children[0];
 			type_node = tree->children[1];
-			first_pass(tree->children[2], declared_variables);
-			first_pass(tree->children[3], declared_variables);
 			break;
 		case AST_FHEADER:
 			id_node = tree->children[1];
 			type_node = tree->children[0];
-
-			/* TODO: Since here tree->children[2]->children[2] is a list of parameters,
-			 * we might have to create a new scope for those variables declared here.
-			 * Right now, this accomplishes nothing, since this node is of type
-			 * AST_IDENTIFIER. Test program with the argument of `tests/fun_dec.txt`
-			 * to see. */
-			first_pass(tree->children[2], declared_variables);
+			break;
+		/* The parameters of function was definied as global variables to
+			to keep the compiler more simple. If it's needed to keep difference
+			in scopes variables does it necessary create others symbols tables.*/
+		case AST_PARAMS:
+			/*AST_VAR like*/
+			id_node = tree->children[2];
+			type_node = tree->children[1];
 			break;
 	}
 
@@ -396,6 +404,7 @@ static void annotate_declaration(struct astree *tree, struct hashmap *declared_v
 	struct symtab_item *item = id_node->symbol->value;
 	switch (tree->type) {
 		case AST_VAR:
+		case AST_PARAMS:
 			item->id_type = ID_VAR;
 			break;
 		case AST_VEC:
@@ -431,10 +440,10 @@ static void annotate_symbol(struct astree *tree) {
 	struct symtab_item *item = tree->symbol->value;
 	switch (item->code) {
 		case SYMBOL_LIT_INT:
-			item->data_type = TP_LONG;
+			item->data_type = TP_SHORT;
 			break;
 		case SYMBOL_LIT_REAL:
-			item->data_type = TP_DOUBLE;
+			item->data_type = TP_FLOAT;
 			break;
 		case SYMBOL_LIT_CHAR:
 			item->data_type = TP_BYTE;
@@ -478,6 +487,7 @@ static void first_pass(struct astree *tree, struct hashmap *declared_variables) 
 		case AST_VAR:
 		case AST_VEC:
 		case AST_FHEADER:
+		case AST_PARAMS:
 			annotate_declaration(tree, declared_variables);
 			break;
 	}
@@ -489,6 +499,73 @@ static void check_if_declared(struct astree *tree, struct hashmap *declared_vari
 		fprintf(stderr, "%s not declared\n", id);
 		exit(4);
 	}
+}
+
+static int resolve_expr_type(struct astree *tree){
+	if (tree == NULL)
+		return TP_ALL;
+
+	struct symtab_item* item;
+
+	switch (tree->type) {
+		/* Identifiers and Symbols
+			IMPORTANT: on AST_VEC_SUB testing only the type
+			of the vector. The index check will be done in
+			other step*/
+		case AST_SYM:	case AST_VEC_SUB:
+			return ((struct symtab_item *)tree->symbol->value)->data_type;
+
+		/* Arithmetical*/
+		case AST_ADD:	case AST_SUB:	case AST_MUL:
+		case AST_DIV:
+			return 	(resolve_expr_type(tree->children[0]) &
+					resolve_expr_type(tree->children[1]));
+
+		/* Boolean Operators*/
+		case AST_LT: 	case AST_GT: 	case AST_LE:
+		case AST_GE:	case AST_EQ:	case AST_NE:
+		case AST_AND:	case AST_OR:
+
+			if ((resolve_expr_type(tree->children[0]) &
+				resolve_expr_type(tree->children[1])) != TP_INCOMP){
+					return TP_BOOLEAN;
+			}
+			else{
+				return TP_INCOMP;
+			}
+
+		/* Unary operator*/
+		case AST_NOT:
+			if (resolve_expr_type(tree->children[0]) != TP_INCOMP)
+				return TP_BOOLEAN;
+			else
+				return TP_INCOMP;
+
+		/* Function call
+			IMPORTANT: verifing only the type of the function,
+			arguments will be tested in other step. It's help
+			to modularization and some erros like a call function
+			that isn't save in a variable.
+			No test at symtab_get if it's a valid pointer*/
+		case AST_CALL:
+			printf("%s\n", tree->children[0]->symbol->key);
+			return TP_ALL;
+			/*
+
+			//Quebrando código!!!
+			symtab_get(tree->children[0]->symbol->key, item);
+			if (item->id_type != ID_FUN)
+				return TP_INCOMP;
+			return item->data_type;
+			*/
+		case AST_EXP_BLOCK:
+			return resolve_expr_type(tree->children[0]);
+	}
+}
+
+/* Search for a child node */
+static int search_return(struct astree *tree, struct astree **node,
+	struct astree **father){
 }
 
 /* Traverses tree checking if:
@@ -515,29 +592,39 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 		check_if_declared(tree, declared_variables);
 	}
 
-	if (   (tree->type == AST_ADD)
-		|| (tree->type == AST_SUB)
-		|| (tree->type == AST_MUL)
-		|| (tree->type == AST_DIV)
-		|| (tree->type == AST_LT)
-		|| (tree->type == AST_GT)
-		|| (tree->type == AST_LE)
-		|| (tree->type == AST_GE)
-		|| (tree->type == AST_EQ)
-		|| (tree->type == AST_NE)) {
-		/* TODO: check if tree->children[0] and tree->children[1] are numeric */
-	}
-
-	if (   (tree->type == AST_WHEN)
+	if ((tree->type == AST_WHEN)
 	    || (tree->type == AST_WHEN_ELSE)
 		|| (tree->type == AST_WHILE)) {
 		/* TODO: check if tree->children[0] is a boolean */
+		if (resolve_expr_type(tree->children[0]) != TP_BOOLEAN)
+			exit(4);
 	}
 
 	if (tree->type == AST_FOR) {
-		/* TODO: check if tree->children[1] and tree->children[2] are numeric */
+		/* TODO: checkfaz necessário if tree->children[1] and tree->children[2] are numeric */
 		/* TODO: check if tree->children[0] is a varible compatible with
 		 * tree->children[1] and tree->children[2] */
+		int type;
+		/* Test if identifier is a interger compatible type*/
+		type = ((struct symtab_item *)tree->children[0]->symbol->value)->data_type;
+		if((type & TP_INTEGER) != TP_INTEGER){
+			fprintf(stderr, "SEMANTIC ERROR: At a FOR statement identifier %s isn't a integer type.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+		/* Test if expressions are a interger compatible type*/
+		type = resolve_expr_type(tree->children[1]);
+		if((type & TP_INTEGER) != TP_INTEGER){
+			fprintf(stderr,
+				"SEMANTIC ERROR: At a FOR statement iterator isn't a interger type.\n");
+			exit(4);
+		}
+		type = resolve_expr_type(tree->children[2]);
+		if((type & TP_INTEGER) != TP_INTEGER){
+			fprintf(stderr,
+				"SEMANTIC ERROR: At a FOR statement iterator isn't a interger type.\n");
+			exit(4);
+		}
 	}
 
 	if (tree->type == AST_CALL) {
@@ -558,11 +645,33 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 	if (tree->type == AST_VAR_ATTR) {
 		/* TODO: check if tree->children[0] is a variable identifier */
 		/* TODO: check if tree->children[1] has the same type as the varible */
+		int var_type, exp_type;
+		struct symtab_item* info = (struct symtab_item *)tree->children[0]->symbol->value;
+
+		if(info->id_type != ID_VAR){
+			fprintf(stderr, "SEMANTIC ERROR: Identifier %s isn't a variable.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+
+		var_type = info->data_type;
+		exp_type = resolve_expr_type(tree->children[1]);
+
+		if(var_type & exp_type == TP_INCOMP){
+			fprintf(stderr,
+				"SEMANTIC ERROR: Attribution to variable %s is a incompatible type.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
 	}
 
 	if (tree->type == AST_FUNC) {
 		/* TODO: check if tree->children[1] has as a return statement compatible
 		 * with tree->children[0]->children[0] type. That is, the return
 		 * statement has a type equal to the function identifier's data_type */
+		 struct astree *node = tree->children[0]->children[1];
+		 unsigned int func_type =
+		 	((struct symtab_item *)node->symbol->value)->data_type;
+
 	}
 }

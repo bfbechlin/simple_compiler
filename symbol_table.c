@@ -3,13 +3,13 @@
 #include "hashmap.h"
 #include "symbol_table.h"
 
-struct hashmap hash;
+static struct hashmap hash;
 
 void symtab_init(void){
 	hm_initialize(8, 0.5, sizeof(struct symtab_item), &hash);
 }
 
-struct hm_item *symtab_insert(char* symbol, int code){
+struct hm_item *symtab_insert(const char* symbol, int code){
 	struct symtab_item item;
 	item.code = code;
 	item.data_type = 0;
@@ -20,17 +20,20 @@ struct hm_item *symtab_insert(char* symbol, int code){
 	return hm_getref(&hash, symbol);
 }
 
+int symtab_get(const char* symbol, struct symtab_item* dummy){
+	return hm_get(&hash, symbol, (void*) dummy);
+}
+
 void symtab_print(void){
 	hm_fprint(stdout, &hash, 0);
 }
 
 static const char *data_type_to_string[] = {
-	"",
-	"byte",
-	"short",
-	"long",
-	"float",
-	"double"
+	"", "double", "", "float", "", "long", "", "",
+	"", "", "", "", "", "", "", "short",
+	"", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "byte",
+	"boolean"
 };
 
 static const char *id_type_to_string[] = {

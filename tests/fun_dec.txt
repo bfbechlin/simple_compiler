@@ -2,5 +2,5 @@ a: short 1;
 b: short 2;
 long incn (long x, long n)
 {
-  a = a + b; return x+n;
+  when (a == 1) then return a else a = a + b;
 };

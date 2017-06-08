@@ -564,11 +564,11 @@ static int resolve_expr_type(struct astree *tree){
 static int check_if_return_is(int ret_type, struct astree *cmd) {
 	switch (cmd->type) {
 		case AST_RETURN:
-			//if (ret_type is compatible with type(cmd->children[0])) {
-			//	return 0;
-			//} else {
-			//	return 2;
-			//}
+			if (ret_type & resolve_expr_type(cmd->children[0]) != TP_INCOMP) {
+				return 0;
+			} else {
+				return 2;
+			}
 			break;
 		case AST_BLOCK:
 			return check_if_return_is(ret_type, cmd->children[0]);
@@ -580,6 +580,11 @@ static int check_if_return_is(int ret_type, struct astree *cmd) {
 			if ((right_return == 1) && last_command) {
 				return 1;
 			}
+
+			if (right_return == 0) {
+				return 0;
+			}
+
 			int left_return = check_if_return_is(ret_type, cmd->children[0]);
 			if (right_return == 1 && left_return == 1) {
 				return 1;

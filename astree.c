@@ -466,6 +466,20 @@ void ast_semantic_check(struct astree *tree) {
 	hm_terminate(&declared_variables);
 }
 
+static void annotate_return(struct astree *tree, struct astree *fun){
+	if(tree == NULL)
+		return;
+
+	for (int i = 0; i < AST_MAXCHILDREN; i++)
+		annotate_return(tree->children[i], fun);
+
+	if(tree->type == AST_RETURN){
+		struct hm_item* symbol = (struct hm_item *)calloc(1, sizeof(struct hm_item));
+		symbol->value = fun;
+		tree->symbol = symbol;
+	}
+}
+
 /* Traverses tree checking:
  * 1. redeclarations
  * 2. data_type in symbol table
@@ -491,13 +505,18 @@ static void first_pass(struct astree *tree, struct hashmap *declared_variables) 
 		case AST_PARAMS:
 			annotate_declaration(tree, declared_variables);
 			break;
+		case AST_FUNC:
+			annotate_return(tree, tree);
+			break;
 	}
+
 }
+
 
 static void check_if_declared(struct astree *tree, struct hashmap *declared_variables) {
 	char *id = tree->symbol->key;
 	if (hm_getref(declared_variables, id) == NULL) {
-		fprintf(stderr, "%s not declared\n", id);
+		fprintf(stderr, "SEMANTIC ERROR: Variable %s isn't declared.\n", id);
 		exit(4);
 	}
 }
@@ -557,23 +576,6 @@ static int resolve_expr_type(struct astree *tree){
 	}
 }
 
-struct astree* search_return_statement(struct astree *tree, struct astree **father){
-	if(tree == NULL)
-		return NULL;
-
-	switch (tree->type) {
-		case AST_RETURN:
-			return tree;
-		case AST_CMD_LIST:
-			*father = tree;
-			search_return_statement(tree->children[0], father);
-			return search_return_statement(tree->children[1], father);
-		case AST_BLOCK:
-			return search_return_statement(tree->children[0], father);
-		default:
-			return NULL;
-	}
-}
 
 static int ast_keyword_to_data_type(int keyword){
 	switch (keyword) {
@@ -767,26 +769,23 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 		}
 	}
 
-	if (tree->type == AST_FUNC) {
+	if (tree->type == AST_RETURN) {
 		/* TODO: check if tree->children[1] has as a return statement compatible
 		 * with tree->children[0]->children[0] type. That is, the return
 		 * statement has a type equal to the function identifier's data_type */
-		 struct astree* father = tree->children[1];
-		 struct astree* ret_statement;
+		int func_type, ret_type;
+		struct astree* func = (struct astree*)tree->symbol->value;
 
-		 unsigned int func_type =
-		 	((struct symtab_item *)tree->children[0]->children[1]->symbol->value)->data_type;
+		func_type = ast_keyword_to_data_type(func->children[0]->children[0]->type);
+		ret_type = resolve_expr_type(tree->children[0]);
 
-		ret_statement = search_return_statement(father, &father);
-		while(ret_statement != NULL){
-			if((resolve_expr_type(ret_statement->children[0]) & func_type) == TP_INCOMP){
-				fprintf(stderr,
-					"SEMANTIC ERROR: Return of function '%s' has incompatible type.\n",
-					tree->children[0]->children[1]->symbol->key);
-				exit(4);
-			}
-			ret_statement = search_return_statement(father, &father);
+		if((func_type & ret_type) == TP_INCOMP){
+			fprintf(stderr,
+				"SEMANTIC ERROR: Return of function '%s' has incompatible type.\n",
+				func->children[0]->children[1]->symbol->key);
+			exit(4);
 		}
+
 
 	}
 }

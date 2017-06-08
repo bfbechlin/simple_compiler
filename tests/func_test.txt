@@ -1,0 +1,10 @@
+a: short 1;
+b: short 2;
+short main(){
+	for (a = 1 to 10)
+      print incn(10.1) " ";
+};
+
+short incn(short n){
+when (n == 1) then return 1 else return 1 > 0;
+};

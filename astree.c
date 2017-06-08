@@ -39,9 +39,11 @@ void ast_terminate(struct astree *tree) {
 	if (!tree) {
 		return;
 	}
+	if(tree->type == AST_RETURN){
+		free(tree->symbol);
+	}
 
-	int i;
-	for (i = 0; i < AST_MAXCHILDREN; i++) {
+	for (int i = 0; i < AST_MAXCHILDREN; i++) {
 		ast_terminate(tree->children[i]);
 	}
 

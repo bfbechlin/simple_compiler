@@ -549,23 +549,78 @@ static int resolve_expr_type(struct astree *tree){
 			No test at symtab_get if it's a valid pointer*/
 		case AST_CALL:
 			printf("%s\n", tree->children[0]->symbol->key);
-			return TP_ALL;
-			/*
-
+			//return TP_ALL;
 			//Quebrando código!!!
-			symtab_get(tree->children[0]->symbol->key, item);
-			if (item->id_type != ID_FUN)
+			if (((struct symtab_item *)tree->children[0]->symbol->value)->id_type != ID_FUN)
 				return TP_INCOMP;
-			return item->data_type;
-			*/
+			return ((struct symtab_item *)tree->children[0]->symbol->value)->data_type;
 		case AST_EXP_BLOCK:
 			return resolve_expr_type(tree->children[0]);
 	}
 }
 
-/* Search for a child node */
-static int search_return(struct astree *tree, struct astree **node,
-	struct astree **father){
+/* Return:
+ * - 0, if control reaches end with the right return.
+ * - 1, if control might reach end without returning.
+ * - 2, if control might reach end with wrong return. */
+static int check_if_return_is(int ret_type, struct astree *cmd) {
+	switch (cmd->type) {
+		case AST_RETURN:
+			//if (ret_type is compatible with type(cmd->children[0])) {
+			//	return 0;
+			//} else {
+			//	return 2;
+			//}
+			break;
+		case AST_BLOCK:
+			return check_if_return_is(ret_type, cmd->children[0]);
+			break;
+		case AST_CMD_LIST:
+			;
+			int last_command = cmd->children[0] == NULL;
+			int right_return = check_if_return_is(ret_type, cmd->children[1]);
+			if ((right_return == 1) && last_command) {
+				return 1;
+			}
+			int left_return = check_if_return_is(ret_type, cmd->children[0]);
+			if (right_return == 1 && left_return == 1) {
+				return 1;
+			}
+			return right_return; /* either returns for sure or might return the wrong type */
+		case AST_WHEN:
+			;
+			int ret = check_if_return_is(ret_type, cmd->children[1]);
+			if (ret == 2) {
+				return 2;
+			} else {
+				return 1;
+			}
+			break;
+		case AST_WHEN_ELSE:
+			;
+			int when_ret = check_if_return_is(ret_type, cmd->children[1]);
+			int else_ret = check_if_return_is(ret_type, cmd->children[2]);
+			if (when_ret == 1 || else_ret == 1) {
+				return 1;
+			}
+
+			if (when_ret == 2 || else_ret == 2) {
+				return 2;
+			}
+
+			if (when_ret == 0 && else_ret == 0) {
+				return 0;
+			}
+			break;
+		case AST_FOR:
+			return check_if_return_is(ret_type, cmd->children[3]);
+			break;
+		case AST_WHILE:
+			return check_if_return_is(ret_type, cmd->children[1]);
+			break;
+		default:
+			return 1;
+	}
 }
 
 /* Traverses tree checking if:
@@ -667,11 +722,24 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 
 	if (tree->type == AST_FUNC) {
 		/* TODO: check if tree->children[1] has as a return statement compatible
-		 * with tree->children[0]->children[0] type. That is, the return
+		 * with tree->children[0]->children[1] type. That is, the return
 		 * statement has a type equal to the function identifier's data_type */
-		 struct astree *node = tree->children[0]->children[1];
-		 unsigned int func_type =
-		 	((struct symtab_item *)node->symbol->value)->data_type;
+		struct astree *id_node = tree->children[0]->children[1];
+		struct astree *cmd_node = tree->children[1];
 
+		struct symtab_item *info = (struct symtab_item *)id_node->symbol->value;
+		char *id_name = id_node->symbol->key;
+		int ret_type = info->data_type;
+
+		int compat = check_if_return_is(ret_type, cmd_node);
+		if (compat == 1) {
+			/* no return found */
+			fprintf(stderr, "SEMANTIC ERROR: %s doesn't return.\n", id_name);
+			exit(4);
+		} else if (compat == 2) {
+			/* return incompatible */
+			fprintf(stderr, "SEMANTIC ERROR: %s has wrong return type.\n", id_name);
+			exit(4);
+		}
 	}
 }

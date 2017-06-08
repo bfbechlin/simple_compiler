@@ -19,7 +19,7 @@ long main()
 
   print " Digite um numero: \n";
   read i;
-  while (i<10)
+  while (i == 10)
     {
 
     a = incn(a,1);
@@ -27,7 +27,7 @@ long main()
 	a = (i + a + 1);
     };
   print "Incrementado algumas vezes fica " a "\n";
-  when (a==5 && b==10) then
+  when ((a==5) && (b==10)) then
     print "Parou no meio\n";
   when (a==11) then
     ;
@@ -38,7 +38,27 @@ long main()
   {};
   };
 
-long incn (long x, long n)
-  return x+n;
+long incn (long x, long hg)
+  return x+hg;
 
 short voidfunc() ;
+
+long a (short y) {
+  when (y < 0) then {
+    y = y + 1;
+    return y;
+  } else {
+    return x;
+    x = x + 1;
+  };
+};
+
+short decn(short n){
+	when (n == 1) then
+		{when (n == 1) then
+		 	while(n < 1){
+				n = n+1;
+			}
+				else return 1;}
+	else return 1;
+};

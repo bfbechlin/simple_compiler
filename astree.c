@@ -358,7 +358,7 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 	}
 }
 
-static void first_pass(struct astree* tree, struct hashmap *declared_variables);
+static void first_pass(struct astree* tree, struct hashmap *declared_variables, struct astree* func);
 static void second_pass(struct astree *tree, struct hashmap *declared_variables);
 
 /* `yes` is a dummy variable. Our hashmap implementation is being used here as
@@ -396,7 +396,8 @@ static void annotate_declaration(struct astree *tree, struct hashmap *declared_v
 
 	/* check redeclarations */
 	if (hm_getref(declared_variables, id_node->symbol->key) != NULL) {
-		fprintf(stderr, "Redeclaration: %s\n", id_node->symbol->key);
+		fprintf(stderr, "SEMANTIC ERROR: Redeclaration of identifier %s.\n",
+			id_node->symbol->key);
 		exit(4);
 	}
 	hm_put(declared_variables, id_node->symbol->key, &yes);
@@ -458,43 +459,25 @@ static void annotate_symbol(struct astree *tree) {
 
 void ast_semantic_check(struct astree *tree) {
 	struct hashmap declared_variables;
+	struct astree* func;
 	hm_initialize(20, 0.6, sizeof(char), &declared_variables);
 
-	first_pass(tree, &declared_variables);
+	first_pass(tree, &declared_variables, func);
 	second_pass(tree, &declared_variables);
 
 	hm_terminate(&declared_variables);
-}
-
-static void annotate_return(struct astree *tree, struct astree *fun){
-	if(tree == NULL)
-		return;
-
-	for (int i = 0; i < AST_MAXCHILDREN; i++)
-		annotate_return(tree->children[i], fun);
-
-	if(tree->type == AST_RETURN){
-		struct hm_item* symbol = (struct hm_item *)calloc(1, sizeof(struct hm_item));
-		symbol->value = fun;
-		tree->symbol = symbol;
-	}
 }
 
 /* Traverses tree checking:
  * 1. redeclarations
  * 2. data_type in symbol table
  * 3. id_type in symbol table */
-static void first_pass(struct astree *tree, struct hashmap *declared_variables) {
+static void first_pass(struct astree *tree, struct hashmap *declared_variables, struct astree* func) {
 	if (tree == NULL) {
 		return;
 	}
 
-	/* Annotating children before the root seems more intuitive, but I don't think
-	 * it makes any difference. */
-	for (int i = 0; i < AST_MAXCHILDREN; i++) {
-		first_pass(tree->children[i], declared_variables);
-	}
-
+	struct hm_item* symbol;
 	switch (tree->type) {
 		case AST_SYM:
 			annotate_symbol(tree);
@@ -506,9 +489,19 @@ static void first_pass(struct astree *tree, struct hashmap *declared_variables) 
 			annotate_declaration(tree, declared_variables);
 			break;
 		case AST_FUNC:
-			annotate_return(tree, tree);
+			func = tree;
+			break;
+		case AST_RETURN:
+			symbol = (struct hm_item *)calloc(1, sizeof(struct hm_item));
+			symbol->value = func;
+			tree->symbol = symbol;
 			break;
 	}
+
+	/* Annotating children before the root seems more intuitive, but I don't think
+	 * it makes any difference. */
+	for (int i = 0; i < AST_MAXCHILDREN; i++)
+		first_pass(tree->children[i], declared_variables, func);
 
 }
 
@@ -516,7 +509,7 @@ static void first_pass(struct astree *tree, struct hashmap *declared_variables) 
 static void check_if_declared(struct astree *tree, struct hashmap *declared_variables) {
 	char *id = tree->symbol->key;
 	if (hm_getref(declared_variables, id) == NULL) {
-		fprintf(stderr, "SEMANTIC ERROR: Variable %s isn't declared.\n", id);
+		fprintf(stderr, "SEMANTIC ERROR: Identifier %s isn't declared.\n", id);
 		exit(4);
 	}
 }

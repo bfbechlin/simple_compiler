@@ -1,2 +1,6 @@
+a: short 1;
+b: short 2;
 long incn (long x, long n)
-  return x+n;
+{
+  a = a + b; return x+n;
+};

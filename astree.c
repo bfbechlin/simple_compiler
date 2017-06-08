@@ -412,6 +412,7 @@ static void annotate_declaration(struct astree *tree, struct hashmap *declared_v
 			break;
 		case AST_FHEADER:
 			item->id_type = ID_FUN;
+			item->decl = tree;
 			break;
 	}
 
@@ -505,15 +506,16 @@ static int resolve_expr_type(struct astree *tree){
 	if (tree == NULL)
 		return TP_ALL;
 
-	struct symtab_item* item;
-
 	switch (tree->type) {
+		case AST_SYM:
+			return ((struct symtab_item *)tree->symbol->value)->data_type;
+
 		/* Identifiers and Symbols
 			IMPORTANT: on AST_VEC_SUB testing only the type
 			of the vector. The index check will be done in
 			other step*/
-		case AST_SYM:	case AST_VEC_SUB:
-			return ((struct symtab_item *)tree->symbol->value)->data_type;
+		case AST_VEC_SUB:
+			return ((struct symtab_item *)tree->children[0]->symbol->value)->data_type;
 
 		/* Arithmetical*/
 		case AST_ADD:	case AST_SUB:	case AST_MUL:
@@ -525,16 +527,14 @@ static int resolve_expr_type(struct astree *tree){
 		case AST_LT: 	case AST_GT: 	case AST_LE:
 		case AST_GE:	case AST_EQ:	case AST_NE:
 		case AST_AND:	case AST_OR:
-
 			if ((resolve_expr_type(tree->children[0]) &
-				resolve_expr_type(tree->children[1])) != TP_INCOMP){
+				resolve_expr_type(tree->children[1])) != TP_INCOMP)
 					return TP_BOOLEAN;
-			}
-			else{
-				return TP_INCOMP;
-			}
 
-		/* Unary operator*/
+			else
+				return TP_INCOMP;
+
+		/* Unary Boolean Operator*/
 		case AST_NOT:
 			if (resolve_expr_type(tree->children[0]) != TP_INCOMP)
 				return TP_BOOLEAN;
@@ -548,12 +548,10 @@ static int resolve_expr_type(struct astree *tree){
 			that isn't save in a variable.
 			No test at symtab_get if it's a valid pointer*/
 		case AST_CALL:
-			printf("%s\n", tree->children[0]->symbol->key);
-			//return TP_ALL;
-			//Quebrando código!!!
 			if (((struct symtab_item *)tree->children[0]->symbol->value)->id_type != ID_FUN)
 				return TP_INCOMP;
 			return ((struct symtab_item *)tree->children[0]->symbol->value)->data_type;
+
 		case AST_EXP_BLOCK:
 			return resolve_expr_type(tree->children[0]);
 	}
@@ -623,6 +621,21 @@ static int check_if_return_is(int ret_type, struct astree *cmd) {
 	}
 }
 
+static int ast_keyword_to_data_type(int keyword){
+	switch (keyword) {
+		case AST_KW_BYTE:
+			return TP_BYTE;
+		case AST_KW_SHORT:
+			return TP_SHORT;
+		case AST_KW_LONG:
+			return TP_LONG;
+		case AST_KW_FLOAT:
+			return TP_FLOAT;
+		case AST_KW_DOUBLE:
+			return TP_DOUBLE;
+	}
+}
+
 /* Traverses tree checking if:
  * 1. variables used are declared
  * 2. TODO: variables are used correctly according to their id_type
@@ -685,16 +698,96 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 	if (tree->type == AST_CALL) {
 		/* TODO: check if tree->children[0] is a function identifier */
 		/* TODO: check if tree->children[1] is compatible with the function declaration */
+		int func_type, call_type, arg_counter = 0;
+		struct symtab_item* info = (struct symtab_item *)tree->children[0]->symbol->value;
+		if(info->id_type != ID_FUN){
+			fprintf(stderr, "SEMANTIC ERROR: Identifier '%s' isn't a function name.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+
+		struct astree* func_args = ((struct astree*)info->decl)->children[2];
+		struct astree* call_args = tree->children[1];
+
+		/* Iterating in arguments*/
+		while((call_args != NULL) && (func_args != NULL)){
+			func_type = ast_keyword_to_data_type(func_args->children[1]->type);
+			call_type = resolve_expr_type(call_args->children[1]);
+
+			if((func_type & call_type) == TP_INCOMP){
+				fprintf(stderr, "SEMANTIC ERROR: Call for funcition '%s' has incompatible data argument %s.\n",
+					tree->children[0]->symbol->key, func_args->children[2]->symbol->key);
+				exit(4);
+			}
+
+			/*Next parameter*/
+			func_args = func_args->children[0];
+			call_args = call_args->children[0];
+			arg_counter ++;
+		}
+		if(((call_args != NULL) && (func_args == NULL)) || ((call_args == NULL) && (func_args != NULL))){
+			fprintf(stderr, "SEMANTIC ERROR: Call for funcition '%s' has incompatible number of arguments.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+
 	}
 
 	if (tree->type == AST_VEC_SUB) {
 		/* TODO: check if tree->children[0] is a vector identifier */
+		/* TODO: check if tree->children[1] is an integer */
+		int vec_type, index_type;
+		struct symtab_item* info = (struct symtab_item *)tree->children[0]->symbol->value;
+
+		if(info->id_type != ID_VEC){
+			fprintf(stderr, "SEMANTIC ERROR: Identifier '%s' isn't a vector.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+
+		vec_type = info->data_type;
+		index_type = resolve_expr_type(tree->children[1]);
+
+		if ((index_type & TP_INTEGER) != TP_INTEGER){
+			fprintf(stderr,
+				"SEMANTIC ERROR: Index of vector '%s' isn't a integer type.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
 	}
 
 	if (tree->type == AST_VEC_ATTR) {
 		/* TODO: check if tree->children[0] is a vector identifier */
 		/* TODO: check if tree->children[1] is an integer */
 		/* TODO: check if tree->children[2] has the same type as the vector */
+		int vec_type, exp_type, index_type;
+		struct symtab_item* info = (struct symtab_item *)tree->children[0]->symbol->value;
+
+		if(info->id_type != ID_VEC){
+			fprintf(stderr, "SEMANTIC ERROR: Identifier '%s' isn't a vector.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+
+
+		vec_type = info->data_type;
+		index_type = resolve_expr_type(tree->children[1]);
+		exp_type = resolve_expr_type(tree->children[2]);
+
+		if ((index_type & TP_INTEGER) != TP_INTEGER){
+			fprintf(stderr,
+				"SEMANTIC ERROR: Index of vector '%s' isn't a integer type.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+
+		if(vec_type & exp_type == TP_INCOMP){
+			fprintf(stderr,
+				"SEMANTIC ERROR: Attribution to vector '%s' with a incompatible type.\n",
+				tree->children[0]->symbol->key);
+			exit(4);
+		}
+
 	}
 
 	if (tree->type == AST_VAR_ATTR) {
@@ -704,7 +797,7 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 		struct symtab_item* info = (struct symtab_item *)tree->children[0]->symbol->value;
 
 		if(info->id_type != ID_VAR){
-			fprintf(stderr, "SEMANTIC ERROR: Identifier %s isn't a variable.\n",
+			fprintf(stderr, "SEMANTIC ERROR: Identifier '%s' isn't a variable.\n",
 				tree->children[0]->symbol->key);
 			exit(4);
 		}
@@ -714,7 +807,7 @@ static void second_pass(struct astree *tree, struct hashmap *declared_variables)
 
 		if(var_type & exp_type == TP_INCOMP){
 			fprintf(stderr,
-				"SEMANTIC ERROR: Attribution to variable %s is a incompatible type.\n",
+				"SEMANTIC ERROR: Attribution to variable '%s' with a incompatible type.\n",
 				tree->children[0]->symbol->key);
 			exit(4);
 		}

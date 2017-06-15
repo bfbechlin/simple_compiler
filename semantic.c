@@ -1,4 +1,7 @@
 #include "astree.h"
+#include "symbol_table.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 static void first_pass(struct astree* tree, struct hashmap *declared_variables, struct astree* func);
 static void second_pass(struct astree *tree, struct hashmap *declared_variables);

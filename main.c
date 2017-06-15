@@ -3,6 +3,7 @@
 #include <string.h>
 #include "symbol_table.h"
 #include "astree.h"
+#include "semantic.h"
 
 extern FILE *set_input_file(char* file_name);
 extern int yyparse(void);

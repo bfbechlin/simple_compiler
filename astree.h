@@ -73,6 +73,4 @@ void ast_fprint(FILE *stream, int level, struct astree *tree);
 /* Recreate the program trought tree to a stream. */
 void ast_make_source(FILE* stream, struct astree* tree, int level);
 
-/* Does a semantic check on `tree`. */
-void ast_semantic_check(struct astree* tree);
 #endif /* ifndef AST_H */

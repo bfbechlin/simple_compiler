@@ -1,0 +1,12 @@
+a: float 0;
+i: short 1;
+v: long[10] 0 0 0 0 0 0 0 0 0 0;
+
+short main(){
+	a = 10;
+	v#1 = inc(a, i);
+};
+
+short inc(short n){
+	return 1;
+};

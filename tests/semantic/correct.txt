@@ -1,0 +1,48 @@
+a: float 0;
+b: float 0;
+i: short 1;
+v: long[10] 0 0 0 0 0 0 0 0 0 0;
+
+short main(){
+	// Attr check and function call
+	a = 10;
+	v#1 = inc(a);
+	v#2 = hd(a, i);
+	i = main();
+	v#4 = main() + v[3];
+	a = main() + inc(a);
+	i = v[4] + inc(a);
+	a = v[4] + inc(a) + 4+5;
+
+	// Ctrl commands
+	for (i = 1 to 10)
+	  print i " ";
+
+	for (i = v[1] to 10)
+  	  print i " ";
+
+	while(a==1){
+
+  	};
+
+	when (a==5 && b==10) then
+      print "Parou no meio\n";
+
+	when (!a) then else;
+
+	// Read command
+	read a;
+};
+
+short inc(short n){
+	return n+1;
+};
+
+long hd (short y, long x) {
+  when (y < 0) then {
+    y = y + 1;
+    return y;
+  } else {
+    return x;
+  };
+};

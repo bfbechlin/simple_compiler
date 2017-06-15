@@ -1,2 +1,0 @@
-long incn (long x, long n)
-  return x+n;

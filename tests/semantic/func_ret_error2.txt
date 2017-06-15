@@ -1,0 +1,13 @@
+a: float 0;
+i: short 1;
+v: long[10] 0 0 0 0 0 0 0 0 0 0;
+
+long hd (short y) {
+  when (y < 0) then {
+    y = y + 1;
+    return y > 1;
+  } else {
+    return x;
+    x = x + 1;
+  };
+};

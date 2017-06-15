@@ -6,6 +6,7 @@ i: long 0;
 v: long[10] 0 0 0 0 0 0 0 0 0 0;
 mat: long[10];
 f: float 10.55;
+jh: double 10.0;
 c: byte 'x';
 d: byte 65;
 
@@ -13,7 +14,8 @@ d: byte 65;
 long main()
   {
   a = 10;
-  v#2 = v[10-1];
+  jh = b;
+  v#2 = v[a];
   for (i = 1 to 10)
     print i " ";
 
@@ -24,10 +26,10 @@ long main()
 
     a = incn(a,1);
     i = i + 1;
-	a = (i + a + 1);
+	a = (i + a + 1.0);
     };
   print "Incrementado algumas vezes fica " a "\n";
-  when ((a==5) && (b==10)) then
+  when (a==5 && b==10) then
     print "Parou no meio\n";
   when (a==11) then
     ;
@@ -43,7 +45,7 @@ long incn (long x, long hg)
 
 short voidfunc() ;
 
-long a (short y) {
+long hd (short y) {
   when (y < 0) then {
     y = y + 1;
     return y;

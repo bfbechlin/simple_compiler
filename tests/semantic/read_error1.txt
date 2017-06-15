@@ -1,0 +1,11 @@
+a: float 0;
+i: short 1;
+v: long[10] 0 0 0 0 0 0 0 0 0 0;
+
+short main(){
+	read v;
+};
+
+short inc(short n){
+	return n+1;
+};

@@ -4,6 +4,7 @@
 #include "symbol_table.h"
 #include "astree.h"
 #include "semantic.h"
+#include "tac.h"
 
 extern FILE *set_input_file(char* file_name);
 extern int yyparse(void);
@@ -11,6 +12,7 @@ extern struct astree *program;
 
 void main(int argc, char* argv[]){
 	FILE *out, *in;
+	struct tac* intermed_code;
 	switch (argc) {
 		case 1:
 			in = stdin;
@@ -50,6 +52,10 @@ void main(int argc, char* argv[]){
 
 	fprintf(stderr, "------------- Source code (check output file, if this is empty):\n");
 	ast_make_source(out, program, 0);
+
+	intermed_code = tac_populate(program);
+	fprintf(stderr, "------------- TAC list:\n");
+	tac_fprint(stderr, intermed_code);
 
 	fprintf(stderr, "------------- Exiting...\n");
 	symtab_destroy();

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "hashmap.h"
 #include "symbol_table.h"
 
@@ -23,6 +24,21 @@ struct hm_item *symtab_insert(const char* symbol, int code){
 int symtab_get(const char* symbol, struct symtab_item* dummy){
 	return hm_get(&hash, symbol, (void*) dummy);
 }
+
+struct hm_item* symtab_make_label(void){
+	static int counter = 0;
+	char label[15];
+	snprintf(label, sizeof(label), "/label%i", counter++);
+	return symtab_insert(label, SYMBOL_LABEL);
+}
+
+struct hm_item* symtab_make_tmp(void){
+	static int counter = 0;
+	char tmp[15];
+	snprintf(tmp, sizeof(tmp), "/tmp%i", counter++);
+	return symtab_insert(tmp, SYMBOL_TEMPORARY);
+}
+
 
 void symtab_print(void){
 	hm_fprint(stdout, &hash, 0);

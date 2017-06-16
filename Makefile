@@ -1,6 +1,6 @@
 CC := gcc
 
-etapa4: hashmap.o astree.o symbol_table.o semantic.o parser.o scanner.o main.o
+etapa5: hashmap.o astree.o tac.o symbol_table.o semantic.o parser.o scanner.o main.o
 	$(CC) -g -o $@ $^
 
 scanner.c: scanner.l
@@ -12,8 +12,8 @@ parser.c: parser.y
 %.o: %.c
 	$(CC) -c $<
 
-etapa4.tgz: clean
-	tar cvfz etapa4.tgz *
+etapa5.tgz: clean
+	tar cvfz etapa5.tgz *
 
 .PHONY: clean
 clean:

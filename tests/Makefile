@@ -1,4 +1,4 @@
-COMP_BIN := ../etapa4
+COMPILER_BIN := ../etapa5
 ALL_TARGETS := caller test_hashmap
 
 .PHONY = all
@@ -17,5 +17,5 @@ caller: caller.c
 clean:
 	rm -rf $(ALL_TARGETS)
 
-semantic_test: caller $(COMP_BIN)
-		ls -d  $(PWD)/semantic/*.txt | xargs ./caller $(COMP_BIN)
+semantic_test: caller $(COMPILER_BIN)
+		ls -d  $(PWD)/semantic/*.txt | xargs ./caller $(COMPILER_BIN)

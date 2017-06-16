@@ -1,0 +1,12 @@
+a: short 0;
+b: short 1;
+
+short main(){
+	read a;
+	read b;
+	return sum(a,b);
+};
+
+short sum(short x, short y){
+	return x + y;
+};

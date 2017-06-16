@@ -1,0 +1,10 @@
+a: short 0;
+b: short 1;
+
+short main(){
+	a = b - sum(a,b);
+};
+
+short sum(short x, short y){
+	return x + y;
+};

@@ -18,6 +18,8 @@
 #define TAC_SUB			16
 #define TAC_MUL 		17
 #define TAC_DIV 		18
+/* Test*/
+#define TAC_EQ			19
 
 struct tac{
 	int type;
@@ -34,7 +36,7 @@ struct tac{
 struct tac* tac_join(struct tac* l1, struct tac* l2);
 
 struct tac* tac_create(int type, struct hm_item* res, struct hm_item* op1,
-	struct hm_item* op2, struct tac* next);
+	struct hm_item* op2);
 
 void tac_terminate(struct tac* list);
 

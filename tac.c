@@ -10,6 +10,8 @@ static int ast_to_tac[] = {
 	TAC_SUB,
 	TAC_MUL,
 	TAC_DIV,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, TAC_EQ/*TEST*/
 	/* and more...*/
 };
 
@@ -32,7 +34,8 @@ static char* tac_to_string[] = {
 	"ADD",
 	"SUB",
 	"MUL",
-	"DIV"
+	"DIV",
+	"EQ" /*TEST*/
 	/* and more...*/
 };
 
@@ -47,7 +50,7 @@ struct tac* tac_join(struct tac* l1, struct tac* l2){
 }
 
 struct tac* tac_create(int type, struct hm_item* res, struct hm_item* op1,
-	struct hm_item* op2, struct tac* next){
+	struct hm_item* op2){
 
 	struct tac *node = calloc(1, sizeof(struct tac));
 
@@ -59,7 +62,6 @@ struct tac* tac_create(int type, struct hm_item* res, struct hm_item* op1,
 	node->res = res;
 	node->op1 = op1;
 	node->op2 = op2;
-	node->next = next;
 
 	return node;
 }
@@ -101,11 +103,45 @@ struct tac* tac_reorder(struct tac* list){
 	return prev;
 }
 
+static struct tac* control_block(struct astree* tree){
+	struct tac* expr;
+	struct tac* cmd[2];
+	struct hm_item* label[2];
+
+	expr = tac_populate(tree->children[0]);
+	cmd[0] = tac_populate(tree->children[1]);
+	label[0] = symtab_make_label();
+	switch (tree->type){
+		case AST_WHEN:
+			return tac_join(expr, tac_join(
+				tac_create(TAC_IFZ, label[0], expr->res, NULL), tac_join(
+					cmd[0], tac_create(TAC_LABEL, label[0], NULL, NULL))));
+		case AST_WHEN_ELSE:
+			cmd[1] = tac_populate(tree->children[2]);
+			label[1] = symtab_make_label();
+			cmd[0] = tac_join(expr, tac_join(
+				tac_create(TAC_IFZ, label[0], expr->res, NULL), cmd[0]));
+			return tac_join(cmd[0],
+				tac_join(tac_create(TAC_JUMP, label[1], NULL, NULL),
+					tac_join(tac_create(TAC_LABEL, label[0], NULL, NULL),
+						tac_join(cmd[1],
+						tac_create(TAC_LABEL, label[1], NULL, NULL)))));
+		case AST_WHILE:
+			label[1] = symtab_make_label();
+			cmd[0] = tac_join(tac_create(TAC_LABEL, label[0], NULL, NULL),
+				tac_join(expr, tac_join(
+					tac_create(TAC_IFZ, label[1], expr->res, NULL), cmd[0])));
+			return tac_join(cmd[0], tac_join(tac_create(TAC_JUMP, label[0], NULL,
+				NULL), tac_create(TAC_LABEL, label[1], NULL, NULL)));
+	}
+}
+
 struct tac* tac_populate(struct astree* tree){
 	if(tree == NULL)
 		return NULL;
 
 	struct tac* item[AST_MAXCHILDREN];
+
 	switch (tree->type){
 		case AST_CMD_LIST: case AST_DECL_LIST:
 			return tac_join(tac_populate(tree->children[0]),
@@ -114,23 +150,30 @@ struct tac* tac_populate(struct astree* tree){
 		case AST_VAR_ATTR:
 			item[0] = tac_populate(tree->children[1]);
 			return tac_join(item[0], tac_create(TAC_MOVE, tree->children[0]->symbol,
-				item[0]->res, NULL, NULL));
+				item[0]->res, NULL));
+
 
 		case AST_ADD: case AST_SUB:	case AST_MUL: case AST_DIV:
+		/*To test control_block!!!*/ case AST_EQ:
 			item[0] = tac_populate(tree->children[0]);
 			item[1] = tac_populate(tree->children[1]);
 
 			return tac_join(item[0],
-				tac_create(ast_to_tac[tree->type], symtab_make_tmp(),
+				tac_join(tac_create(ast_to_tac[tree->type], symtab_make_tmp(),
 				item[0] == NULL? tree->children[0]->symbol: item[0]->res,
-				item[1] == NULL? tree->children[1]->symbol: item[1]->res,
+				item[1] == NULL? tree->children[1]->symbol: item[1]->res),
 				item[1]));
 
 
+
 		case AST_FUNC:
-			return tac_join(tac_create(TAC_BEGINFUN, symtab_make_label(),
-				NULL, NULL,NULL), tac_join(tac_populate(tree->children[1]),
-				tac_create(TAC_ENDFUN, NULL, NULL, NULL, NULL)));
+			return tac_join(tac_create(TAC_BEGINFUN,
+				tree->children[0]->children[1]->symbol, NULL, NULL),
+				tac_join(tac_populate(tree->children[1]),
+					tac_create(TAC_ENDFUN, NULL, NULL, NULL)));
+
+		case AST_WHEN: case AST_WHEN_ELSE: case AST_WHILE: case AST_FOR:
+			return control_block(tree);
 
 		default:
 			/* Tests */

@@ -1,0 +1,8 @@
+a: short 0;
+b: short 1;
+short main(){
+	while (a == 1){
+		a = a + b * 1;
+		b = a / 1;
+	};
+};

@@ -1,0 +1,7 @@
+a: short 0;
+b: short 1;
+short main(){
+	when (a == 1) then
+		a = a + b * 1;
+	b = a / 1;
+};

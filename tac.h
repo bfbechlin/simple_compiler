@@ -18,8 +18,9 @@
 #define TAC_SUB			16
 #define TAC_MUL 		17
 #define TAC_DIV 		18
+#define TAC_INC 		19
 /* Test*/
-#define TAC_EQ			19
+#define TAC_EQ			20
 
 struct tac{
 	int type;

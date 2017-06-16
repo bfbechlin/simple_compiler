@@ -1,0 +1,10 @@
+a: short 0;
+b: short 1;
+i: short 0;
+short main(){
+	for (i = 1 to 10){
+		a = a + b * 1;
+		b = a - 1;
+	};
+	b = a / 1;
+};

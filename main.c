@@ -54,8 +54,12 @@ void main(int argc, char* argv[]){
 	ast_make_source(out, program, 0);
 
 	intermed_code = tac_populate(program);
+	fprintf(stderr, "------------- TAC list inverse:\n");
+	tac_fprint(stderr, intermed_code);
+	intermed_code = tac_reorder(intermed_code);
 	fprintf(stderr, "------------- TAC list:\n");
 	tac_fprint(stderr, intermed_code);
+
 
 	fprintf(stderr, "------------- Exiting...\n");
 	symtab_destroy();

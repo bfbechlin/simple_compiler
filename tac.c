@@ -38,12 +38,12 @@ static char* tac_to_string[] = {
 
 struct tac* tac_join(struct tac* l1, struct tac* l2){
 	struct tac* item;
-	if(l1 == NULL)
-		return l2;
+	if(l2 == NULL)
+		return l1;
 	/* Find last item*/
-	for(item = l1; item->next != NULL; item = item->next){}
-	item->next = l2;
-	return l1;
+	for(item = l2; item->next != NULL; item = item->next){}
+	item->next = l1;
+	return l2;
 }
 
 struct tac* tac_create(int type, struct hm_item* res, struct hm_item* op1,
@@ -88,6 +88,19 @@ void tac_fprint(FILE *stream, struct tac* list){
 	}
 }
 
+struct tac* tac_reorder(struct tac* list){
+	struct tac *prev, *next, *iter;
+	if(list == NULL)
+		return NULL;
+	prev = NULL;
+	for(iter = list; iter != NULL; iter = next){
+		next = iter->next;
+		iter->next = prev;
+		prev = iter;
+	}
+	return prev;
+}
+
 struct tac* tac_populate(struct astree* tree){
 	if(tree == NULL)
 		return NULL;
@@ -116,8 +129,8 @@ struct tac* tac_populate(struct astree* tree){
 
 		case AST_FUNC:
 			return tac_join(tac_create(TAC_BEGINFUN, symtab_make_label(),
-				NULL, NULL, tac_populate(tree->children[1])),
-				tac_create(TAC_ENDFUN, NULL, NULL, NULL, NULL));
+				NULL, NULL,NULL), tac_join(tac_populate(tree->children[1]),
+				tac_create(TAC_ENDFUN, NULL, NULL, NULL, NULL)));
 
 		default:
 			/* Tests */

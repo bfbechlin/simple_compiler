@@ -40,4 +40,6 @@ void tac_terminate(struct tac* list);
 
 void tac_fprint(FILE *stream, struct tac* list);
 
+struct tac* tac_reorder(struct tac* list);
+
 struct tac* tac_populate(struct astree* tree);

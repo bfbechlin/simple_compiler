@@ -118,6 +118,7 @@ void ast_semantic_check(struct astree *tree) {
  * 2. data_type in symbol table
  * 3. id_type in symbol table */
 static void first_pass(struct astree *tree, struct hashmap *declared_variables, struct astree* func) {
+	int i;
 	if (tree == NULL) {
 		return;
 	}
@@ -145,7 +146,7 @@ static void first_pass(struct astree *tree, struct hashmap *declared_variables, 
 
 	/* Annotating children before the root seems more intuitive, but I don't think
 	 * it makes any difference. */
-	for (int i = 0; i < AST_MAXCHILDREN; i++)
+	for (i = 0; i < AST_MAXCHILDREN; i++)
 		first_pass(tree->children[i], declared_variables, func);
 
 }
@@ -249,13 +250,14 @@ static int ast_keyword_to_data_type(int keyword){
  * 5. TODO: funcion calls have the correct type of arguments
  * 6. TODO: vectors indexing is done using integers */
 static void second_pass(struct astree *tree, struct hashmap *declared_variables) {
+	int i;
 	if (tree == NULL) {
 		return;
 	}
 
 	/* Annotating children before the root seems more intuitive, but I don't think
 	 * it makes any difference. */
-	for (int i = 0; i < AST_MAXCHILDREN; i++) {
+	for (i = 0; i < AST_MAXCHILDREN; i++) {
 		second_pass(tree->children[i], declared_variables);
 	}
 

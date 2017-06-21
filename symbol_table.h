@@ -63,6 +63,7 @@ int symtab_get(const char* symbol, struct symtab_item* dummy);
 
 struct hm_item* symtab_make_label(void);
 struct hm_item* symtab_make_tmp(void);
+struct hm_item* symtab_make_const(int i);
 
 void symtab_print(void);
 void symtab_fprint_item(FILE *stream, struct symtab_item *item);

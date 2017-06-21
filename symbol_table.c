@@ -27,18 +27,23 @@ int symtab_get(const char* symbol, struct symtab_item* dummy){
 
 struct hm_item* symtab_make_label(void){
 	static int counter = 0;
-	char label[15];
-	snprintf(label, sizeof(label), "/label%i", counter++);
+	char label[16];
+	snprintf(label, sizeof(label), "/label_%i", counter++);
 	return symtab_insert(label, SYMBOL_LABEL);
 }
 
 struct hm_item* symtab_make_tmp(void){
 	static int counter = 0;
-	char tmp[15];
-	snprintf(tmp, sizeof(tmp), "/tmp%i", counter++);
+	char tmp[16];
+	snprintf(tmp, sizeof(tmp), "/tmp_%i", counter++);
 	return symtab_insert(tmp, SYMBOL_TEMPORARY);
 }
 
+struct hm_item* symtab_make_const(int i){
+	char cons[16];
+	snprintf(cons, sizeof(cons), "%i", i);
+	return symtab_insert(cons, SYMBOL_LIT_INT);
+}
 
 void symtab_print(void){
 	hm_fprint(stdout, &hash, 0);

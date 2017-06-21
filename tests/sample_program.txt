@@ -3,7 +3,7 @@
 b: long 0;
 a: short 0;
 i: long 0;
-v: long[10] 0 0 0 0 0 0 0 0 0 0;
+v: long[10] 1 2 3 0 0 0 0 0 0 9;
 mat: long[10];
 f: float 10.55;
 jh: double 10.0;

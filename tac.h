@@ -31,6 +31,10 @@
 #define TAC_AND 		27
 #define TAC_OR 			28
 
+#define TAC_VAR			29
+#define TAC_VARINIT		30
+#define TAC_VEC			31
+#define TAC_VECINIT		32
 
 struct tac{
 	int type;

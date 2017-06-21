@@ -36,6 +36,7 @@ struct astree *ast_create(int type, struct hm_item *symbol,
 }
 
 void ast_terminate(struct astree *tree) {
+	int i;
 	if (!tree) {
 		return;
 	}
@@ -43,7 +44,7 @@ void ast_terminate(struct astree *tree) {
 		free(tree->symbol);
 	}
 
-	for (int i = 0; i < AST_MAXCHILDREN; i++) {
+	for (i = 0; i < AST_MAXCHILDREN; i++) {
 		ast_terminate(tree->children[i]);
 	}
 

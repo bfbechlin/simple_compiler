@@ -11,8 +11,16 @@ static int ast_to_tac[] = {
 	TAC_MUL,
 	TAC_DIV,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, TAC_EQ/* <--TEST*/
-	/* and more...*/
+	0, 0, 0, 0,
+	TAC_LT,
+	TAC_GT,
+	TAC_NOT,
+	TAC_LE,
+	TAC_GE,
+	TAC_EQ,
+	TAC_NE,
+	TAC_AND,
+	TAC_OR
 };
 
 static char* tac_to_string[] = {
@@ -28,16 +36,23 @@ static char* tac_to_string[] = {
 	"RET",
 	"PRINT",
 	"READ",
-	"",
-	"",
+	"VEC_READ",
+	"VEC_WRITE",
 	"",
 	"ADD",
 	"SUB",
 	"MUL",
 	"DIV",
 	"INC",
-	"EQ" /* <--TEST*/
-	/* and more...*/
+	"BLT",
+	"BGT",
+	"NOT",
+	"BLE",
+	"BGE",
+	"BEQ",
+	"BNE",
+	"AND",
+	"OR"
 };
 
 struct tac* tac_join(struct tac* l1, struct tac* l2){
@@ -152,9 +167,8 @@ static struct tac* control(struct astree* tree){
 				tac_create(TAC_MOVE, ident, expr->res, NULL),
 				tac_create(TAC_LABEL, label[0], NULL, NULL)));
 			expr = tac_populate(tree->children[2]);
-			cmd[1] = tac_join(cmd[1], tac_join(expr, tac_join(
-				tac_create(TAC_SUB, expr->res, ident, expr->res),
-				tac_create(TAC_IFZ, label[1], expr->res, NULL))));
+			cmd[1] = tac_join(cmd[1], tac_join(expr,
+				tac_create(TAC_GT, label[1], ident, expr->res)));
 			return tac_join(cmd[1], tac_join(cmd[0], tac_join(
 				tac_create(TAC_INC, ident, NULL, NULL), tac_join(
 				tac_create(TAC_JUMP, label[0], NULL, NULL),
@@ -181,6 +195,8 @@ static struct tac* symbol(struct astree* tree){
 
 struct tac* function(struct astree* tree){
 	struct tac* item;
+	struct tac* concat;
+	struct astree* iter;
 	struct hm_item* tmp;
 
 	switch(tree->type){
@@ -196,13 +212,16 @@ struct tac* function(struct astree* tree){
 
 		case AST_CALL:
 			tmp = symtab_make_tmp();
-			return tac_join(tac_populate(tree->children[1]),
-				tac_create(TAC_CALL, tmp, tree->children[0]->symbol, NULL));
+			concat = NULL;
+			/* Passing over arguments*/
+			for(iter = tree->children[1]; iter != NULL; iter = iter->children[0]){
+				item = tac_populate(iter->children[1]);
+				concat = tac_join(item,tac_join( tac_create(TAC_ARG,
+					tree->children[0]->symbol, item->res, NULL), concat));
+			}
 
-		case AST_ARGS:
-			item = tac_populate(tree->children[1]);
-			return tac_join(tac_populate(tree->children[0]), tac_join(
-				item, tac_create(TAC_ARG, item->res, NULL, NULL)));
+			return tac_join(concat,
+				tac_create(TAC_CALL, tmp, tree->children[0]->symbol, NULL));
 
 		default:
 			return NULL;
@@ -214,13 +233,41 @@ static struct tac* print(struct astree* tree){
 
 	switch(tree->type){
 		case AST_PRINT:
-			return tac_join(tac_populate(tree->children[0]),
-				tac_create(TAC_PRINT, NULL, NULL, NULL));
+			return tac_populate(tree->children[0]);
 
 		case AST_PRINT_LIST:
 			item = tac_populate(tree->children[1]);
 			return tac_join(tac_populate(tree->children[0]), tac_join(
-				item, tac_create(TAC_ARG, item->res, NULL, NULL)));
+				item, tac_create(TAC_PRINT, item->res, NULL, NULL)));
+
+		default:
+			return NULL;
+	}
+}
+
+static struct tac* attribution(struct astree* tree){
+	struct tac* item;
+	struct tac* index;
+	struct hm_item* tmp;
+
+	switch(tree->type){
+		case AST_VAR_ATTR:
+			item = tac_populate(tree->children[1]);
+			return tac_join(item, tac_create(TAC_MOVE, tree->children[0]->symbol,
+				item->res, NULL));
+
+		case AST_VEC_ATTR:
+			index = tac_populate(tree->children[1]);
+			item = tac_populate(tree->children[2]);
+			return tac_join(item, tac_join(index,
+				tac_create(TAC_VECWRITE, tree->children[0]->symbol,
+				index->res, item->res)));
+
+		case AST_VEC_SUB:
+			tmp = symtab_make_tmp();
+			index = tac_populate(tree->children[1]);
+			return tac_join(index, tac_create(TAC_VECREAD, tmp,
+				tree->children[0]->symbol, index->res));
 
 		default:
 			return NULL;
@@ -250,10 +297,8 @@ struct tac* tac_populate(struct astree* tree){
 		case AST_WHEN: case AST_WHEN_ELSE: case AST_WHILE: case AST_FOR:
 			return control(tree);
 
-		case AST_VAR_ATTR:
-			item[0] = tac_populate(tree->children[1]);
-			return tac_join(item[0], tac_create(TAC_MOVE, tree->children[0]->symbol,
-				item[0]->res, NULL));
+		case AST_VAR_ATTR: case AST_VEC_ATTR: case AST_VEC_SUB:
+			return attribution(tree);
 
 		case AST_ADD: case AST_SUB:	case AST_MUL: case AST_DIV:
 		/*To test control_block -->*/ case AST_EQ:
@@ -269,11 +314,11 @@ struct tac* tac_populate(struct astree* tree){
 			return tac_create(TAC_READ, tree->children[0]->symbol, NULL, NULL);
 
 		default:
-			return NULL;
+			return tac_populate(tree->children[0]);
 	}
 	/*TODO:
 		* Boolean Expressions
-		* Vector Attribution
 		* Init Variables ???
+		* MakeTempVariables with TYPE ???
 	*/
 }

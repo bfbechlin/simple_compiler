@@ -12,6 +12,8 @@
 #define TAC_RET 		9
 #define TAC_PRINT 		10
 #define TAC_READ 		11
+#define TAC_VECREAD		12
+#define TAC_VECWRITE	13
 
 /* Expression operators*/
 #define TAC_ADD 		15
@@ -19,8 +21,16 @@
 #define TAC_MUL 		17
 #define TAC_DIV 		18
 #define TAC_INC 		19
-/* Test*/
-#define TAC_EQ			20
+#define TAC_LT 			20
+#define TAC_GT 			21
+#define TAC_NOT 		22
+#define TAC_LE 			23
+#define TAC_GE 			24
+#define TAC_EQ 			25
+#define TAC_NE 			26
+#define TAC_AND 		27
+#define TAC_OR 			28
+
 
 struct tac{
 	int type;
@@ -29,7 +39,6 @@ struct tac{
 	struct hm_item* op1;
 	struct hm_item* op2;
 
-//	struct tac* prev;
 	struct tac* next;
 };
 

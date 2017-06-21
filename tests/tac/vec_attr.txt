@@ -1,0 +1,12 @@
+a: short 0;
+b: short 1;
+v: long[10] 0 0 0 0 0 0 0 0 0 0;
+
+short main(){
+	v#2 = b - sum(a,b);
+	v#(a+b) = 2;
+};
+
+short sum(short x, short y){
+	return x + y;
+};

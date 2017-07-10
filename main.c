@@ -60,7 +60,9 @@ void main(int argc, char* argv[]){
 	tac_fprint(stderr, intermed_code);
 
 	fprintf(stderr, "------------- Assembly:\n");
-	fprint_assembly(stderr, intermed_code);
+	FILE *asm_file = fopen("asm.s", "w");
+	fprint_assembly(asm_file, intermed_code);
+	fclose(asm_file);
 
 	fprintf(stderr, "------------- Exiting...\n");
 	symtab_destroy();

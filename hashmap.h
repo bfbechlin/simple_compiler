@@ -11,8 +11,8 @@ struct hm_item {
 };
 
 struct hashmap {
-	unsigned int size;
-	unsigned int used;
+	int size;
+	int used;
 	float load_factor; /* float between 0 and 1 */
 
 	size_t value_size; /* sizeof(<type to be stored>) */

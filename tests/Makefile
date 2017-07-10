@@ -1,4 +1,4 @@
-COMPILER_BIN := ../etapa5
+COMPILER_BIN := ../etapa6
 ALL_TARGETS := caller test_hashmap
 
 .PHONY = all

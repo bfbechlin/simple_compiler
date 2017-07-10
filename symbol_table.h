@@ -54,12 +54,15 @@ struct symtab_item {
 	int data_type;
 	int id_type;
 	struct astree *decl;
+	int unique_id;
 };
 
 void symtab_init(void);
 
 struct hm_item *symtab_insert(const char* symbol, int code);
 int symtab_get(const char* symbol, struct symtab_item* dummy);
+struct hm_item *symtab_first();
+struct hm_item *symtab_next();
 
 struct hm_item* symtab_make_label(void);
 struct hm_item* symtab_make_tmp(void);

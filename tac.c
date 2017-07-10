@@ -96,11 +96,12 @@ void tac_fprint(FILE *stream, struct tac* list){
 	struct tac* item;
 
 	for(item = list; item != NULL; item = item->next){
-		fprintf(stream, "%s %s %s %s\n",
-			tac_to_string[item->type],
-			item->res ? item->res->key : "",
-			item->op1 ? item->op1->key : "",
-			item->op2 ? item->op2->key : "");
+		if(item->type != TAC_SYMBOL)
+			fprintf(stream, "%s %s %s %s\n",
+				tac_to_string[item->type],
+				item->res ? item->res->key : "",
+				item->op1 ? item->op1->key : "",
+				item->op2 ? item->op2->key : "");
 	}
 }
 
@@ -189,8 +190,6 @@ static struct tac* symbol(struct astree* tree){
 		case SYMBOL_LIT_REAL:
 		case SYMBOL_LIT_CHAR:
 		case SYMBOL_LIT_STRING:
-			tmp = symtab_make_tmp();
-			return tac_create(TAC_SYMBOL, tmp, tree->symbol, NULL);
 		default:
 			return tac_create(TAC_SYMBOL, tree->symbol, NULL, NULL);
 	}
@@ -317,7 +316,6 @@ struct tac* operators(struct astree* tree){
 
 struct tac* init_var(struct astree* tree){
 
-
 	switch(tree->type){
 		case AST_VAR:;
 			struct tac* var = tac_create(TAC_VAR, tree->children[0]->symbol,
@@ -386,7 +384,4 @@ struct tac* tac_populate(struct astree* tree){
 		default:
 			return tac_populate(tree->children[0]);
 	}
-	/*TODO:
-		* Init Variables ???
-	*/
 }

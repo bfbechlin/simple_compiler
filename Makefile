@@ -1,6 +1,6 @@
 CC := gcc
 
-etapa5: hashmap.o astree.o tac.o symbol_table.o semantic.o parser.o scanner.o main.o
+etapa6: assembly.o hashmap.o astree.o tac.o symbol_table.o semantic.o parser.o scanner.o main.o
 	$(CC) -g -o $@ $^
 
 scanner.c: scanner.l

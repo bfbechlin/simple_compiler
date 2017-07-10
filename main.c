@@ -5,6 +5,7 @@
 #include "astree.h"
 #include "semantic.h"
 #include "tac.h"
+#include "assembly.h"
 
 extern FILE *set_input_file(char* file_name);
 extern int yyparse(void);
@@ -58,6 +59,8 @@ void main(int argc, char* argv[]){
 	fprintf(stderr, "------------- TAC list:\n");
 	tac_fprint(stderr, intermed_code);
 
+	fprintf(stderr, "------------- Assembly:\n");
+	fprint_assembly(stderr, intermed_code);
 
 	fprintf(stderr, "------------- Exiting...\n");
 	symtab_destroy();

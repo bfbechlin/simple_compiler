@@ -1,3 +1,6 @@
+#ifndef TAC_H
+#define TAC_H
+
 #include "astree.h"
 
 #define TAC_SYMBOL 		0
@@ -59,3 +62,5 @@ void tac_fprint(FILE *stream, struct tac* list);
 struct tac* tac_reorder(struct tac* list);
 
 struct tac* tac_populate(struct astree* tree);
+
+#endif /* TAC_H */

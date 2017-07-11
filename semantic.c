@@ -87,15 +87,16 @@ static void annotate_symbol(struct astree *tree) {
 	struct symtab_item *item = tree->symbol->value;
 	switch (item->code) {
 		case SYMBOL_LIT_INT:
-			item->data_type = TP_SHORT;
+			item->data_type = TP_LONG;
 			break;
 		case SYMBOL_LIT_REAL:
-			item->data_type = TP_FLOAT;
+			item->data_type = TP_DOUBLE;
 			break;
 		case SYMBOL_LIT_CHAR:
 			item->data_type = TP_BYTE;
 			break;
 		case SYMBOL_LIT_STRING:
+			item->data_type = TP_STRING;
 			break;
 		case SYMBOL_IDENTIFIER:
 			break;
@@ -160,7 +161,7 @@ static void check_if_declared(struct astree *tree, struct hashmap *declared_vari
 	}
 }
 
-static int resolve_expr_type(struct astree *tree){
+int resolve_expr_type(struct astree *tree){
 	if (tree == NULL)
 		return TP_ALL;
 

@@ -3,6 +3,7 @@
 #include "symbol_table.h"
 #include "tac.h"
 #include "astree.h"
+#include "semantic.h"
 
 static int ast_to_tac[] = {
 	TAC_SYMBOL,
@@ -200,6 +201,7 @@ struct tac* function(struct astree* tree){
 	struct tac* concat;
 	struct astree* iter;
 	struct hm_item* tmp;
+	struct hm_item* func;
 
 	switch(tree->type){
 		case AST_FUNC:
@@ -215,6 +217,10 @@ struct tac* function(struct astree* tree){
 
 		case AST_CALL:
 			tmp = symtab_make_tmp();
+			func = (struct symtab_item*)tree->children[0]->symbol;
+			printf("PASS\n");
+			((struct symtab_item*)tmp->value)->data_type =
+				((struct symtab_item*)func->value)->data_type;
 			concat = NULL;
 			/* Passing over arguments*/
 			for(iter = tree->children[1]; iter != NULL; iter = iter->children[0]){
@@ -268,6 +274,8 @@ static struct tac* attribution(struct astree* tree){
 
 		case AST_VEC_SUB:
 			tmp = symtab_make_tmp();
+			((struct symtab_item*)tmp->value)->data_type =
+				resolve_expr_type(tree->children[1]);
 			index = tac_populate(tree->children[1]);
 			return tac_join(index, tac_create(TAC_VECREAD, tmp,
 				tree->children[0]->symbol, index->res));
@@ -283,9 +291,22 @@ struct tac* operators(struct astree* tree){
 	struct hm_item* label[2];
 
 	switch(tree->type){
-
 		/* Arith. Op*/
 		case AST_ADD: case AST_SUB:	case AST_MUL: case AST_DIV:
+
+
+			expr[0] = tac_populate(tree->children[0]);
+			expr[1] = tac_populate(tree->children[1]);
+
+			tmp = symtab_make_tmp();
+			((struct symtab_item*)tmp->value)->data_type = resolve_expr_type(tree);
+
+			return tac_join(expr[0], tac_join(expr[1],
+				tac_create(ast_to_tac[tree->type], tmp,
+				expr[0] == NULL? tree->children[0]->symbol: expr[0]->res,
+				expr[1] == NULL? tree->children[1]->symbol: expr[1]->res)));
+
+
 		/* Logic Op*/
 		case AST_AND: case AST_OR:
 		/* Logic Op*/
@@ -295,8 +316,11 @@ struct tac* operators(struct astree* tree){
 			expr[0] = tac_populate(tree->children[0]);
 			expr[1] = tac_populate(tree->children[1]);
 
+			tmp = symtab_make_tmp();
+			((struct symtab_item*)tmp->value)->data_type = TP_BOOLEAN;
+
 			return tac_join(expr[0], tac_join(expr[1],
-				tac_create(ast_to_tac[tree->type], symtab_make_tmp(),
+				tac_create(ast_to_tac[tree->type], tmp,
 				expr[0] == NULL? tree->children[0]->symbol: expr[0]->res,
 				expr[1] == NULL? tree->children[1]->symbol: expr[1]->res)));
 
@@ -304,8 +328,11 @@ struct tac* operators(struct astree* tree){
 		case AST_NOT:
 			expr[0] = tac_populate(tree->children[0]);
 
+			tmp = symtab_make_tmp();
+			((struct symtab_item*)tmp->value)->data_type = TP_BOOLEAN;
+
 			return tac_join(expr[0],
-				tac_create(ast_to_tac[tree->type], symtab_make_tmp(),
+				tac_create(ast_to_tac[tree->type], tmp,
 				expr[0] == NULL? tree->children[0]->symbol: expr[0]->res,
 				NULL));
 

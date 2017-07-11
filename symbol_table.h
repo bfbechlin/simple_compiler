@@ -24,6 +24,7 @@
 #define TP_SHORT 	15
 #define TP_BYTE 	31
 #define TP_BOOLEAN 	32
+#define TP_STRING	64
 
 /* Test masks compatibility*/
 #define TP_ALL 		~(0)

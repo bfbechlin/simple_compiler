@@ -1,9 +1,19 @@
 #include <stdio.h>
 
 int a;
-int i = 1;
-int j = 1;
+int b;
+int i = -2;
+int j = -2;
+
 void main(){
+	a = i + j;
+	a = i - j;
+	a = i * j;
+	a = i / j;
+	printf("%i\n", a);
+}
+
+void test(){
 	a = i + j;
 	a = i - j;
 	a = i * j;

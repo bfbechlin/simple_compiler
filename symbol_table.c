@@ -16,8 +16,6 @@ void symtab_init(void){
 struct hm_item *symtab_first() {
 	current_bucket = -1;
 	current_item = NULL;
-	hm_fprint(stderr, &hash, 0);
-
 	return symtab_next();
 }
 

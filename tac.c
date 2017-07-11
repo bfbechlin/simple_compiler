@@ -124,6 +124,7 @@ static struct tac* control(struct astree* tree){
 	struct tac* cmd[2];
 	struct hm_item* label[2];
 	struct hm_item* ident;
+	struct hm_item* tmp;
 
 	switch (tree->type){
 		case AST_WHEN:
@@ -166,14 +167,19 @@ static struct tac* control(struct astree* tree){
 			label[0] = symtab_make_label();
 			label[1] = symtab_make_label();
 			ident = tree->children[0]->symbol;
+
+			tmp = symtab_make_tmp();
+			((struct symtab_item*)tmp->value)->data_type = TP_BOOLEAN;
+
 			expr = tac_populate(tree->children[1]);
 			cmd[0] = tac_populate(tree->children[3]);
 			cmd[1] = tac_join(expr, tac_join(
 				tac_create(TAC_MOVE, ident, expr->res, NULL),
 				tac_create(TAC_LABEL, label[0], NULL, NULL)));
 			expr = tac_populate(tree->children[2]);
-			cmd[1] = tac_join(cmd[1], tac_join(expr,
-				tac_create(TAC_GT, label[1], ident, expr->res)));
+			cmd[1] = tac_join(cmd[1], tac_join(expr, tac_join(
+				tac_create(TAC_LE, tmp, ident, expr->res),
+				tac_create(TAC_IFZ, label[1], tmp, NULL))));
 			return tac_join(cmd[1], tac_join(cmd[0], tac_join(
 				tac_create(TAC_INC, ident, NULL, NULL), tac_join(
 				tac_create(TAC_JUMP, label[0], NULL, NULL),
@@ -217,7 +223,7 @@ struct tac* function(struct astree* tree){
 
 		case AST_CALL:
 			tmp = symtab_make_tmp();
-			func = (struct symtab_item*)tree->children[0]->symbol;
+			func = (struct hm_item*) tree->children[0]->symbol;
 			printf("PASS\n");
 			((struct symtab_item*)tmp->value)->data_type =
 				((struct symtab_item*)func->value)->data_type;

@@ -1,0 +1,44 @@
+b: long 0;
+a: long 0;
+tmp: long 0;
+i: long 0;
+j: long 0;
+k: long 0;
+v: long[10] 9 8 7 6 5 4 3 2 1 0;
+
+long main()
+	{
+	print "v : ";
+	for (i = 0 to 9){
+		print  v[i] " ";
+	};
+	print "\n";
+	for (i = 1 to 9){
+		for (j = 0 to 9 - i){
+			when (v[j] > v[j+1]) then{
+				tmp = v[j];
+				v#j = v[j+1];
+				v#(j+1) = tmp;
+			};
+		};
+	};
+	print "v : ";
+	for (i = 0 to 9){
+		print  v[i] " ";
+	};
+	print "\n";
+	print "i: ";
+	read i;
+	print "j: ";
+	read j;
+	print "i/j = " div(i, j) "\n";
+	print "j/i = " div(j, i) "\n";
+	print "j*i = " mul(j, i) "\n";
+
+  };
+long div(long op1, long op2){
+	return op1/op2;
+};
+long mul(long op3, long op4){
+	return op3*op4;
+};

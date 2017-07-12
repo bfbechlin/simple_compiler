@@ -50,6 +50,9 @@
 #define AST_BLOCK 41
 #define AST_EXP_BLOCK 42
 
+#define INIT_PARAM 0
+#define NEXT_PARAM 1
+
 struct astree {
 	int type;
 	struct hm_item *symbol;
@@ -73,4 +76,5 @@ void ast_fprint(FILE *stream, int level, struct astree *tree);
 /* Recreate the program trought tree to a stream. */
 void ast_make_source(FILE* stream, struct astree* tree, int level);
 
+struct hm_item* next_param(struct astree* fheader, int mode);
 #endif /* ifndef AST_H */

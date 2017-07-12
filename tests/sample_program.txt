@@ -16,7 +16,9 @@ long main()
   {
   a = 10;
   jh = b;
-  v#2 = v[a];
+  b = v[a];
+  v#2 = a;
+  print v[2];
   for (i = 1 to 10)
     print i " ";
 

@@ -360,3 +360,14 @@ void ast_make_source(FILE* stream, struct astree* tree, int level){
 			break;
 	}
 }
+
+struct hm_item* next_param(struct astree* fheader, int mode){
+	static struct astree* this = NULL;
+	if(mode == INIT_PARAM)
+		this = fheader->children[2];
+
+	else if(mode == NEXT_PARAM)
+		this = this == NULL ? NULL : this->children[0];
+
+	return this ==  NULL ? NULL : this->children[2]->symbol;
+}

@@ -1,0 +1,38 @@
+b: long 0;
+a: short 0;
+i: long 1;
+v: long[10] 9 8 7 6 5 4 3 2 1 0;
+
+long main()
+	{
+	a = 10;
+	for (i = 0 to 9){
+		print "v[" i "] = " v[i] ", ";
+	};
+	print "\n";
+
+  	print "Digite um numero: \n";
+  	read a;
+  	print " a = " a "\n";
+	i = 0;
+  	while (i <= a)
+	{
+		print "i = " i ", ";
+	    i = incn(i, 2);
+	};
+	print "\n";
+	when (a==10) then
+	  print "a igual a 10\n"
+	else print "a diferente de 10\n";
+
+/*
+  print "Incrementado algumas vezes fica " a "\n";
+  when (a<50) then
+    print "B igual 10\n";
+  when (a==11) then else
+    ;
+*/
+  };
+
+long incn (long x, long hg)
+	return x+hg;

@@ -5,6 +5,7 @@
 #include "assembly.h"
 #include "symbol_table.h"
 #include "hashmap.h"
+#include "astree.h"
 
 static void program_prologue(FILE *stream) {
 	fprintf(stream, "\t.data\n");
@@ -14,10 +15,6 @@ static void program_prologue(FILE *stream) {
 					"\t.string\t\"%%i\"\n");
 	fprintf(stream, ".pchar:\n"
 					"\t.string\t\"%%c\"\n");
-}
-
-static int var_lit(struct hm_item* item){
-
 }
 
 static void asm_print_var(FILE *stream, struct hm_item* var,
@@ -36,14 +33,16 @@ static void asm_print_var(FILE *stream, struct hm_item* var,
 		switch (data_type) {
 			case TP_DOUBLE:
 			case TP_FLOAT:
-				fprintf(stream, "\t.double\t%lf\n", atof(init->key));
+				//fprintf(stream, "\t.double\t%lf\n", atof(init->key));
+				fprintf(stream, "\t.long\t%i\n", atoi(init->key));
 				break;
 			case TP_LONG:
 			case TP_SHORT:
 				fprintf(stream, "\t.long\t%i\n", atoi(init->key));
 				break;
 			case TP_BYTE:
-				fprintf(stream, "\t.byte\t%i\n", *(init->key + 1));
+				//fprintf(stream, "\t.byte\t%i\n", *(init->key + 1));
+				fprintf(stream, "\t.long\t%i\n", *(init->key + 1));
 				break;
 			case TP_BOOLEAN:
 				fprintf(stream, "\t.long\t%i\n", atoi(init->key));
@@ -114,15 +113,20 @@ static void declarations(FILE *stream) {
 		case SYMBOL_LIT_REAL:
 			fprintf(stream, "\t.globl\t_%s\n"
 							"_%s:\n"
-							"\t.double\t%f\n",
-							key, key, atof(key));
+							//"\t.double\t%f\n"
+							"\t.long\t%i\n"
+							,key, key,
+							//atof(key)
+							atoi(key)
+							);
 			break;
 
 		case SYMBOL_LIT_CHAR:
 			/* key + 1 skips the single quote character */
 			fprintf(stream, "\t.globl\t_%s\n"
 							"_%s:\n"
-							"\t.byte\t%d\n",
+							//"\t.byte\t%d\n",
+							"\t.long\t%d\n",
 							key, key, *(key + 1));
 			break;
 
@@ -185,6 +189,16 @@ static void print(FILE *stream, struct tac *inst) {
 static void functions(FILE *stream, struct tac *inst){
 	if(inst->type == TAC_BEGINFUN){
 		struct hm_item *item = inst->res;
+		struct symtab_item* fheader = item->value;
+		struct hm_item* param;
+
+		fprintf(stream, "\t.data\n");
+		for(param = next_param(fheader->decl, INIT_PARAM);
+			param != NULL; param = next_param(NULL, NEXT_PARAM)){
+			asm_print_var(stream, param, NULL, 0);
+
+		}
+
 		fprintf(stream, "\t.text\n"
             "\t.globl\t%s\n"
             "%s:\n"
@@ -201,18 +215,18 @@ static void functions(FILE *stream, struct tac *inst){
 static void arith_op(FILE *stream, struct tac* inst){
 	struct symtab_item* info1 =  inst->op1->value;
 	struct symtab_item* info2 =  inst->op2->value;
-	if((info1->data_type == TP_LONG) && (info2->data_type == TP_LONG)){
+	//if((info1->data_type == TP_LONG) && (info2->data_type == TP_LONG)){
 		fprintf(stream, "\tmovl\t_%s(%%rip), %%edx\n"
 			"\tmovl\t_%s(%%rip), %%eax\n", inst->op1->key, inst->op2->key);
 		switch (inst->type){
 		case TAC_ADD:
 			fprintf(stream, "\tmovl\t_%s(%%rip), %%edx\n"
-			"\tmovl\t_%s(%%rip), %%eax\n", inst->op1->key, inst->op2->key);
+			"\tmovl\t_%s(%%rip), %%eax\n", inst->op2->key, inst->op1->key);
 			fprintf(stream, "\taddl\t%%edx, %%eax\n");
 			break;
 		case TAC_SUB:
 			fprintf(stream, "\tmovl\t_%s(%%rip), %%edx\n"
-			"\tmovl\t_%s(%%rip), %%eax\n", inst->op1->key, inst->op2->key);
+			"\tmovl\t_%s(%%rip), %%eax\n", inst->op2->key, inst->op1->key);
 			fprintf(stream, "\tsubl\t%%edx, %%eax\n");
 			break;
 		case TAC_MUL:
@@ -224,20 +238,20 @@ static void arith_op(FILE *stream, struct tac* inst){
 			fprintf(stream, "\tmovl\t_%s(%%rip), %%eax\n"
 			"\tmovl\t_%s(%%rip), %%ecx\n", inst->op1->key, inst->op2->key);
 			fprintf(stream, "\tcltd\n"
-						"\timull\t%%ecx\n");
+						"\tidiv\t%%ecx\n");
 			break;
 		}
 		fprintf(stream, "\tmovl\t%%eax, _%s(%%rip)\n", inst->res->key);
-	}
+	//}
 }
 
 static void arith_boolean_op(FILE *stream, struct tac* inst){
 	struct symtab_item* info1 =  inst->op1->value;
 	struct symtab_item* info2 =  inst->op2->value;
-	if((info1->data_type == TP_LONG) && (info2->data_type == TP_LONG)){
+	//if((info1->data_type == TP_LONG) && (info2->data_type == TP_LONG)){
 		fprintf(stream, "\tmovl\t_%s(%%rip), %%edx\n"
 			"\tmovl\t_%s(%%rip), %%eax\n"
-			"\tcmpl\t%%edx, %%eax\n", inst->op1->key, inst->op2->key);
+			"\tcmpl\t%%eax, %%edx\n", inst->op1->key, inst->op2->key);
 		switch (inst->type) {
 		case TAC_LT:
 			fprintf(stream, "\tsetb\t%%al\n");
@@ -260,17 +274,17 @@ static void arith_boolean_op(FILE *stream, struct tac* inst){
 		}
 		fprintf(stream, "\tmovzbl\t%%al, %%eax\n"
 			"\tmovl\t%%eax, _%s(%%rip)\n", inst->res->key);
-	}
+	//}
 }
 
 static void logic_boolean_op(FILE *stream, struct tac* inst){
 	struct symtab_item* info1 =  inst->op1->value;
 	struct symtab_item* info2 =  inst->op2->value;
 
-	if((info1->data_type == TP_BOOLEAN) && (info2->data_type == TP_BOOLEAN)){
+	//if((info1->data_type == TP_BOOLEAN) && (info2->data_type == TP_BOOLEAN)){
 		fprintf(stream, "\tmovl\t_%s(%%rip), %%edx\n"
 			"\tmovl\t_%s(%%rip), %%eax\n"
-			"\tcmpl\t%%edx, %%eax\n", inst->op1->key, inst->op2->key);
+			"\tcmpl\t%%eax, %%edx\n", inst->op1->key, inst->op2->key);
 		switch (inst->type) {
 		case TAC_AND:
 			fprintf(stream, "\tandl\t%%edx, %%eax\n");
@@ -280,7 +294,7 @@ static void logic_boolean_op(FILE *stream, struct tac* inst){
 			break;
 		}
 		fprintf(stream, "\tmovl\t%%eax, _%s(%%rip)\n", inst->res->key);
-	}
+	//}
 }
 
 static void unary_logic_boolean_op(FILE *stream, struct tac* inst){
@@ -310,6 +324,9 @@ static void instruction(FILE *stream, struct tac *inst) {
 	case TAC_SYMBOL:
 		break;
 	case TAC_MOVE:
+		fprintf(stream, "\tmovl\t_%s(%%rip), %%eax\n"
+						"\tmovl\t%%eax, _%s(%%rip)\n"
+						,inst->op1->key, inst->res->key);
 		break;
 	case TAC_LABEL:
 		fprintf(stream, "%s:\n", ((struct hm_item*)inst->res)->key);
@@ -321,23 +338,49 @@ static void instruction(FILE *stream, struct tac *inst) {
 		break;
 
 	case TAC_IFZ:
+		fprintf(stream, "\tcmpl\t$0, _%s(%%rip)\n"
+	 					"\tje\t%s\n"
+						, inst->op1->key, inst->res->key);
 		break;
 	case TAC_JUMP:
+		fprintf(stream, "\tjmp\t%s\n", inst->res->key);
 		break;
 	case TAC_CALL:
+		fprintf(stream, "\tcall\t%s\n"
+						"\tmovl\t%%eax, _%s(%%rip)\n"
+						,inst->op1->key, inst->res->key);
 		break;
 	case TAC_ARG:
+		fprintf(stream, "\tmovl\t_%s(%%rip), %%eax\n"
+						"\tmovl\t%%eax, _%s(%%rip)\n"
+						,inst->op1->key, inst->op2->key);
 		break;
 	case TAC_RET:
+		fprintf(stream, "\tmovl\t_%s(%%rip), %%eax\n", inst->res->key);
 		break;
 	case TAC_PRINT:
 		print(stream, inst);
 		break;
 	case TAC_READ:
+		fprintf(stream, "\tmovl\t$_%s, %%esi\n"
+						"\tmovl\t$.pint, %%edi\n"
+						"\tmovl\t$0, %%eax\n"
+						"\tcall\t__isoc99_scanf\n"
+						,inst->res->key);
 		break;
 	case TAC_VECREAD:
+		fprintf(stream, "\tmovl\t_%s(%%rip), %%eax\n"
+						"\tmovl\t_%s(,%%rax,4), %%eax\n"
+						"\tmovl\t%%eax, _%s(%%rip)\n"
+						,inst->op2->key, inst->op1->key, inst->res->key);
+
 		break;
 	case TAC_VECWRITE:
+		fprintf(stream, "\tmovl\t_%s(%%rip), %%eax\n"
+						"\tmovl\t_%s(%%rip), %%edx\n"
+						"\tmovl\t%%edx, _%s(,%%rax,4)\n"
+
+						,inst->op1->key, inst->op2->key, inst->res->key);
 		break;
 
 	case TAC_ADD:
@@ -347,6 +390,10 @@ static void instruction(FILE *stream, struct tac *inst) {
 		arith_op(stream, inst);
 		break;
 	case TAC_INC:
+		fprintf(stream, "\tmovl\t_%s(%%rip), %%eax\n"
+						"\taddl\t$1, %%eax\n"
+						"\tmovl\t%%eax, _%s(%%rip)\n"
+						, inst->res->key, inst->res->key);
 		break;
 
 	case TAC_NOT:
@@ -379,10 +426,6 @@ static void instruction(FILE *stream, struct tac *inst) {
 	}
 }
 
-static void main_epilogue(FILE* stream) {
-	fprintf(stream, "\tleave\n"
-	                "\tret\n");
-}
 
 static void program_epilogue(FILE* stream) {
 

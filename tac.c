@@ -224,15 +224,20 @@ struct tac* function(struct astree* tree){
 		case AST_CALL:
 			tmp = symtab_make_tmp();
 			func = (struct hm_item*) tree->children[0]->symbol;
-			printf("PASS\n");
+			struct astree* fheader = ((struct symtab_item*)func->value)->decl;
+			struct astree* param = fheader->children[2];
 			((struct symtab_item*)tmp->value)->data_type =
 				((struct symtab_item*)func->value)->data_type;
 			concat = NULL;
 			/* Passing over arguments*/
 			for(iter = tree->children[1]; iter != NULL; iter = iter->children[0]){
 				item = tac_populate(iter->children[1]);
+
 				concat = tac_join(item, tac_join(tac_create(TAC_ARG,
-					tree->children[0]->symbol, item->res, NULL), concat));
+					tree->children[0]->symbol, item->res,
+					param->children[2]->symbol),
+					concat));
+				param = param->children[0];
 			}
 
 			return tac_join(concat,

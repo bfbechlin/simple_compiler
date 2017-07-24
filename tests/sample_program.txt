@@ -2,10 +2,9 @@
 
 b: long 0;
 a: short 0;
-i: long 1;
-v: long[10] 1 2 3 0 0 0 0 0 0 9;
+i: long 0;
+v: long[10] 0 0 0 0 0 0 0 0 0 0;
 mat: long[10];
-kj: float[2] 1.0 2.0;
 f: float 10.55;
 jh: double 10.0;
 c: byte 'x';
@@ -16,9 +15,7 @@ long main()
   {
   a = 10;
   jh = b;
-  b = v[a];
-  v#2 = a;
-  print v[2];
+  v#2 = v[a];
   for (i = 1 to 10)
     print i " ";
 
@@ -30,7 +27,6 @@ long main()
     a = incn(a,1);
     i = i + 1;
 	a = (i + a + 1.0);
-	jh = test();
     };
   print "Incrementado algumas vezes fica " a "\n";
   when (a==5 && b==10) then
@@ -68,5 +64,3 @@ short decn(short n){
 				else return 1;}
 	else return 1;
 };
-
-float test();

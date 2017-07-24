@@ -1,0 +1,15 @@
+a: short 0;
+v: short[10] 0 0 0 0 0 0 0 0 0 0;
+
+short main()
+{
+	for (a = 0 to 9) {
+	  v#a = a;
+	};
+
+	for (a = 1 to 100) {
+	};
+
+	for (a = a to 10) {
+	};
+};

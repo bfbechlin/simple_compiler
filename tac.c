@@ -119,6 +119,53 @@ struct tac* tac_reorder(struct tac* list){
 	return prev;
 }
 
+static int suitable_for_unrolling(struct astree *tree) {
+	struct astree *expr1 = tree->children[1];
+	struct astree *expr2 = tree->children[2];
+
+	char are_symbol = expr1->type == AST_SYM && expr2->type == AST_SYM;
+	if (!are_symbol) goto unsuitable;
+
+	struct symtab_item *sym1 = (struct symtab_item *)expr1->symbol->value;
+	struct symtab_item *sym2 = (struct symtab_item *)expr2->symbol->value;
+
+	char are_constants = sym1->code == SYMBOL_LIT_INT && sym2->code == SYMBOL_LIT_INT;
+	if (!are_constants) goto unsuitable;
+
+	int val1 = atoi(expr1->symbol->key);
+	int val2 = atoi(expr2->symbol->key);
+	char are_close = (val2 - val1 <= 16);
+
+	if (!are_close) goto unsuitable;
+
+	return 1;
+
+unsuitable:
+	return 0;
+}
+
+static struct tac *unroll_for(struct astree *tree) {
+	int i;
+
+	int val1 = atoi(tree->children[1]->symbol->key);
+	int val2 = atoi(tree->children[2]->symbol->key);
+
+	struct hm_item *ident = tree->children[0]->symbol;
+	struct tac *cmd = tac_populate(tree->children[3]);
+	struct tac *inc = tac_create(TAC_INC, ident, NULL, NULL);
+
+	struct tac *unrolled_for = tac_join(cmd, inc);
+
+	for (i = val1 + 1; i <= val2; i++) {
+		cmd = tac_populate(tree->children[3]);
+		inc = tac_create(TAC_INC, ident, NULL, NULL);
+		unrolled_for = tac_join(unrolled_for,
+		               tac_join(cmd, inc));
+	}
+
+	return unrolled_for;
+}
+
 static struct tac* control(struct astree* tree){
 	struct tac* expr;
 	struct tac* cmd[2];
@@ -164,26 +211,30 @@ static struct tac* control(struct astree* tree){
 				NULL), tac_create(TAC_LABEL, label[1], NULL, NULL)));
 
 		case AST_FOR:
-			label[0] = symtab_make_label();
-			label[1] = symtab_make_label();
-			ident = tree->children[0]->symbol;
+			if (suitable_for_unrolling(tree)) {
+				return unroll_for(tree);
+			} else {
+				label[0] = symtab_make_label();
+				label[1] = symtab_make_label();
+				ident = tree->children[0]->symbol;
 
-			tmp = symtab_make_tmp();
-			((struct symtab_item*)tmp->value)->data_type = TP_BOOLEAN;
+				tmp = symtab_make_tmp();
+				((struct symtab_item*)tmp->value)->data_type = TP_BOOLEAN;
 
-			expr = tac_populate(tree->children[1]);
-			cmd[0] = tac_populate(tree->children[3]);
-			cmd[1] = tac_join(expr, tac_join(
-				tac_create(TAC_MOVE, ident, expr->res, NULL),
-				tac_create(TAC_LABEL, label[0], NULL, NULL)));
-			expr = tac_populate(tree->children[2]);
-			cmd[1] = tac_join(cmd[1], tac_join(expr, tac_join(
-				tac_create(TAC_LE, tmp, ident, expr->res),
-				tac_create(TAC_IFZ, label[1], tmp, NULL))));
-			return tac_join(cmd[1], tac_join(cmd[0], tac_join(
-				tac_create(TAC_INC, ident, NULL, NULL), tac_join(
-				tac_create(TAC_JUMP, label[0], NULL, NULL),
-				tac_create(TAC_LABEL, label[1], NULL, NULL)))));
+				expr = tac_populate(tree->children[1]);
+				cmd[0] = tac_populate(tree->children[3]);
+				cmd[1] = tac_join(expr, tac_join(
+					tac_create(TAC_MOVE, ident, expr->res, NULL),
+					tac_create(TAC_LABEL, label[0], NULL, NULL)));
+				expr = tac_populate(tree->children[2]);
+				cmd[1] = tac_join(cmd[1], tac_join(expr, tac_join(
+					tac_create(TAC_LE, tmp, ident, expr->res),
+					tac_create(TAC_IFZ, label[1], tmp, NULL))));
+				return tac_join(cmd[1], tac_join(cmd[0], tac_join(
+					tac_create(TAC_INC, ident, NULL, NULL), tac_join(
+					tac_create(TAC_JUMP, label[0], NULL, NULL),
+					tac_create(TAC_LABEL, label[1], NULL, NULL)))));
+			}
 
 		default:
 			return NULL;

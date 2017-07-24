@@ -1,0 +1,16 @@
+// UFRGS - Compiladores - Marcelo Johann - 2017/1
+
+a: short 0;
+i: short 0;
+j short 0;
+
+long main()
+  {
+  a = 10;
+  print 10;
+
+  while (i == 10)
+    {
+    a = i;
+    };
+  };

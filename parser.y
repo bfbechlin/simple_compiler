@@ -11,6 +11,7 @@
 	struct astree *program;
     int yylex(void);
     void yyerror(char *);
+    int errors_found = 0;
 %}
 
 %union {
@@ -57,9 +58,10 @@
 %%
  /*-----RULES------*/
 
-prog: decl_list { program = ast_create(AST_PROG, NULL, $1, NULL, NULL, NULL); } ;
+prog: decl_list { program = ast_create(AST_PROG, NULL, $1, NULL, NULL, NULL); if (errors_found) return 1; } ;
 
 decl_list: decl_list decl ';' { $$ = ast_create(AST_DECL_LIST, NULL, $1, $2, NULL, NULL); }
+         | decl_list error ';' { $$ = $1; }
    		 | { $$ = NULL; } ;
 
 decl: func { }
@@ -110,8 +112,10 @@ fbody: cmd { $$ = $1; } ;
 
 /* command block */
 
-block: '{' cmd_list '}' { $$ = ast_create(AST_BLOCK, NULL, $2, NULL, NULL, NULL);} ;
+block: '{' cmd_list '}' { $$ = ast_create(AST_BLOCK, NULL, $2, NULL, NULL, NULL);}
+     | '{' error '}' { $$ = NULL; } ;
 cmd_list: cmd_list cmd ';' { $$ = ast_create(AST_CMD_LIST, NULL, $1, $2, NULL, NULL); }
+        | cmd_list error ';'
 		| { $$ = NULL; } ;
 
 /* single commands single */
@@ -179,6 +183,6 @@ ctrl: KW_WHEN '(' expr ')' KW_THEN cmd { $$ = ast_create(AST_WHEN, NULL, $3, $6,
  /*-----SUBROUTINES-----*/
 
 void yyerror(char *s){
-    fprintf(stderr, "ERROR:\n\t Program was rejected at line %d.\n", getLineNumber());
-    exit(3);
+    fprintf(stderr, "ERROR: %s at line %d.\n", s, getLineNumber());
+    errors_found = 1;
 }

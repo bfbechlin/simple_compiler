@@ -39,7 +39,9 @@ void main(int argc, char* argv[]){
 	}
 
 	symtab_init();
-	int status = yyparse();
+	int err = yyparse();
+
+	if (err) exit(3);
 	fprintf(stderr, "------------- Parsing successful\n");
 
 	ast_semantic_check(program);
